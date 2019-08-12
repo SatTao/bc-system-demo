@@ -112,6 +112,8 @@ class _state:
 					self.committed=1
 					if (not self.isComplete()):
 						self.committed = 0 # Keep us uncommitted if there's not enough data yet
+						self.announceMissingInfo()
+					
 					self.showEvent()
 					return 1
 
@@ -122,9 +124,13 @@ class _state:
 					return 1
 
 			print("Unrecognised command in AUTO mode") # Default if we don't understand any command here
+
+			# VOICE FEEDBACK NEEDED
 			return 0
 
 		print("Unrecognised mode")
+
+		# VOICE FEEDBACK NEEDED
 		return 0
 
 	def showEvent(self):
@@ -148,6 +154,8 @@ class _state:
 		self.committed = 0
 
 		print("Last event has been cleared - ready for new event")
+
+		# VOICE FEEDBACK NEEDED
 		
 		return 1
 
@@ -239,8 +247,18 @@ class _state:
 	def freshStart(self):
 
 		if(self.lang=="KH"):
-			self.playSound("Voice/nextpersoncanstart_KH.mp3")
+			self.playSound("Voice/nextpersoncanstart_KH.mp3") # Todo, make relative path to avoid problems on different systems.
 		else:
 			self.playVoice("Ready for new operation")
+
+	def announceMissingInfo():
+
+		# Take a look at what's missing from the state currently, then string together voice snippets to annouce it clearly.
+
+		# Probably need to standardise pauses around voice recordings so that the sounds flow nicely.
+
+		return 1
+
+
 
    	# End class

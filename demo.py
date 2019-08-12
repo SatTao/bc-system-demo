@@ -29,10 +29,10 @@ def go():
 	while (running):
 		station.freshStart()
 		while (not station.isComplete()): # This ends when all fields are valid and the user has committed.
-			latest = input("Scan something: ") # should always end with a carriage return
+			latest = input("Scan something: ") # should always end with a carriage return, and should always HAVE FOCUS otherwise this won't work.
 			station.parse(latest)
 			continue
-		station.playVoice("Recording operation data.")
+		# station.playVoice("Recording operation data.")
 		writeOK = station.writeEventToLocalFile()
 		uploadOK = station.uploadEvent()
 		if (not writeOK):
