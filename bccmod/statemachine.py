@@ -30,7 +30,8 @@ class _state:
 	thingName = "PACTICS_demo" # reference for dweet
 	dataEndpoint = "https://www.dweet.io/dweet/for/" + thingName
 	speak = wincl.Dispatch("SAPI.SpVoice") # invoking the builtin voice functionality in windows 10
-	writePath = "D://LEO JOFEH/Documents/PACTICS/bc system demo/output/" # Path for writing local csv files
+	writePath = "D://LEO JOFEH/Documents/PACTICS/bc system demo/output/" # Path for writing local csv files, TODO change this to relative using PATH variable.
+	# TODO add config path and handle config file reading and writing, maybe implement using pickle for simplicity. or using scan codes - neater.
 
 
 	def __init__(self):
@@ -170,9 +171,12 @@ class _state:
 
 		return 1
 
-	def writeEventToLocalFile(self, strTime):
+	def writeEventToLocalFile(self):
 
 		# To do - think about modifying the file layout to more closely mirror existing BCC reports, so the event type field now dictates position in the row rather than being an entry of itself.
+
+		strTime = dt.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
+		print("Got time: ",strTime)
 
 		f = open(self.outputFilename, "a")
 		f.write(', '.join([self.BCC, self.empNum, self.opNum, self.eventType, (strTime + '\n')])) # comma separated values and builtin newline
@@ -180,9 +184,11 @@ class _state:
 
 		return 1
 
-	def uploadEvent(self, strTime):
+	def uploadEvent(self):
 
 		# Package all data as a POST form
+
+		strTime = dt.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
 
 		payload = {
 		"BCC" : self.BCC,

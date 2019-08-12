@@ -33,11 +33,8 @@ def go():
 			station.parse(latest)
 			continue
 		station.playVoice("Recording operation data.")
-		# Get the date and time
-		strTime = dt.datetime.now().strftime("%d/%m/%Y-%H:%M:%S") # This is system local time string right now
-		print("Got time: ",strTime)
-		writeOK = station.writeEventToLocalFile(strTime)
-		uploadOK = station.uploadEvent(strTime)
+		writeOK = station.writeEventToLocalFile()
+		uploadOK = station.uploadEvent()
 		if (not writeOK):
 			station.storeForLater()
 			station.playVoice("Failed to write.")
