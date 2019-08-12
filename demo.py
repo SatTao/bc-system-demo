@@ -42,7 +42,7 @@ def go():
 		continue
 
 try:
-    go()
+	go()
 except KeyboardInterrupt:
     print('\n\nKeyboard exception received. Exiting.')
     exit()

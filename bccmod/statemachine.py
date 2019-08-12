@@ -27,10 +27,11 @@ import string
 
 class _state:
 
+	pwd = os.path.dirname(__file__)
 	thingName = "PACTICS_demo" # reference for dweet
 	dataEndpoint = "https://www.dweet.io/dweet/for/" + thingName
 	speak = wincl.Dispatch("SAPI.SpVoice") # invoking the builtin voice functionality in windows 10
-	writePath = "D://LEO JOFEH/Documents/PACTICS/bc system demo/output/" # Path for writing local csv files, TODO change this to relative using PATH variable.
+	writePath = os.path.join(pwd,'../output/')
 	# TODO add config path and handle config file reading and writing, maybe implement using pickle for simplicity. or using scan codes - neater.
 
 
@@ -161,7 +162,7 @@ class _state:
 
 	def playSound(self, soundFileName):
 
-		ps.playsound(soundFileName)
+		ps.playsound(os.path.join(_state.pwd,'../Voice',soundFileName))
 
 		return 1
 
@@ -191,7 +192,7 @@ class _state:
 		f.close()
 
 		if(self.lang=="KH"):
-			self.playSound("Voice/finishedthankyou_KH.mp3")
+			self.playSound("finishedthankyou_KH.mp3")
 		else:
 			self.playVoice("Finished, thank you")
 
@@ -247,7 +248,7 @@ class _state:
 	def freshStart(self):
 
 		if(self.lang=="KH"):
-			self.playSound("Voice/nextpersoncanstart_KH.mp3") # Todo, make relative path to avoid problems on different systems.
+			self.playSound("nextpersoncanstart_KH.mp3") # Todo, make relative path to avoid problems on different systems.
 		else:
 			self.playVoice("Ready for new operation")
 
