@@ -153,7 +153,7 @@ class _state:
 
 	def playSound(self, soundFileName):
 
-		sp.Soundplayer(soundFileName)
+		ps.playsound(soundFileName)
 
 		return 1
 
@@ -181,6 +181,11 @@ class _state:
 		f = open(self.outputFilename, "a")
 		f.write(', '.join([self.BCC, self.empNum, self.opNum, self.eventType, (strTime + '\n')])) # comma separated values and builtin newline
 		f.close()
+
+		if(self.lang=="KH"):
+			self.playSound("Voice/finishedthankyou_KH.mp3")
+		else:
+			self.playVoice("Finished, thank you")
 
 		return 1
 
