@@ -1,7 +1,11 @@
 <?xml version="1.0" standalone="no" ?>
 <!DOCTYPE project PUBLIC "-//audacityproject-1.3.0//DTD//EN" "http://audacity.sourceforge.net/xml/audacityproject-1.3.0.dtd" >
-<project xmlns="http://audacity.sourceforge.net/xml/" projname="voice test 1_data" version="1.3.0" audacityversion="2.3.2" sel0="19.3933311239" sel1="20.9723288563" vpos="0" h="0.0000000000" zoom="74.0976364926" rate="44100.0" snapto="off" selectionformat="hh:mm:ss + milliseconds" frequencyformat="Hz" bandwidthformat="octaves">
-	<tags/>
+<project xmlns="http://audacity.sourceforge.net/xml/" projname="voice test 1_data" version="1.3.0" audacityversion="2.3.2" sel0="2.8610899083" sel1="4.7100017830" vpos="0" h="0.0000000000" zoom="74.0976364926" rate="44100.0" snapto="off" selectionformat="hh:mm:ss + milliseconds" frequencyformat="Hz" bandwidthformat="octaves">
+	<tags>
+		<tag name="ARTIST" value="Reksmey"/>
+		<tag name="TITLE" value="Next person can start"/>
+		<tag name="COMMENTS" value="First test recording snippet"/>
+	</tags>
 	<wavetrack name="Audio Track" channel="2" linked="0" mute="0" solo="0" height="150" minimized="0" isSelected="0" rate="44100" gain="5.623413" pan="0.4" colorindex="0">
 		<waveclip offset="0.00000000" colorindex="0">
 			<sequence maxsamples="262144" sampleformat="262159" numsamples="1044507">

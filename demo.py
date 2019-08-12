@@ -27,7 +27,7 @@ def go():
 	running = True
 
 	while (running):
-		station.playVoice("Ready for new operation!")
+		station.freshStart()
 		while (not station.isComplete()): # This ends when all fields are valid and the user has committed.
 			latest = input("Scan something: ") # should always end with a carriage return
 			station.parse(latest)
@@ -39,7 +39,6 @@ def go():
 			station.storeForLater()
 			station.playVoice("Failed to write.")
 		station.clearCurrent()
-		station.playVoice("Success.")
 		continue
 
 try:

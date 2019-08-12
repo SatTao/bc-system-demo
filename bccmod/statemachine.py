@@ -148,7 +148,7 @@ class _state:
 		self.committed = 0
 
 		print("Last event has been cleared - ready for new event")
-
+		
 		return 1
 
 	def playSound(self, soundFileName):
@@ -235,5 +235,12 @@ class _state:
 	def catchupUploads(self):
 		# TODO help this class re-attempt failed uploads due to internet connectivity.
 		return 1
+
+	def freshStart(self):
+
+		if(self.lang=="KH"):
+			self.playSound("Voice/nextpersoncanstart_KH.mp3")
+		else:
+			self.playVoice("Ready for new operation")
 
    	# End class
