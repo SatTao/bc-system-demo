@@ -27,9 +27,9 @@ import string
 
 class _state:
 
-	pwd = os.path.dirname(__file__)
+	pwd = os.path.dirname(__file__) # Gets absolute path to the directory that contains this file, not calling location.
 	thingName = "PACTICS_demo" # reference for dweet
-	dataEndpoint = "https://www.dweet.io/dweet/for/" + thingName
+	dataEndpoint = "https://www.dweet.io/dweet/for/" + thingName # This will move to __init__() for multiple instances, with names from config barcode.
 	speak = wincl.Dispatch("SAPI.SpVoice") # invoking the builtin voice functionality in windows 10
 	writePath = os.path.join(pwd,'../output/')
 	# TODO add config path and handle config file reading and writing, maybe implement using pickle for simplicity. or using scan codes - neater.
@@ -46,6 +46,7 @@ class _state:
 
 		self.mode = "AUTO"
 		self.lang = "KH"
+		self.name = "default"
 
 		self.uniqueString = self.createRandomString()
 		self.outputFilename = ''.join([_state.writePath, dt.datetime.now().strftime("%Y-%m-%d_"), self.uniqueString, ".csv"])
@@ -71,7 +72,18 @@ class _state:
 
 		textInput = textInput.lower()
 
-		# Checks for valid data entry and actions in auto mode
+		# Check for mode changes
+
+		if(textInput.startswith('mode-') and len(textInput)>5 and len(textInput)<10): # Then we have a mode change to consider
+
+			if (textInput.find('auto')!=-1):
+				self.mode = 'AUTO'
+				return 1
+			if (textInput.find('prm')!=-1):
+				self.mode = 'PRM'
+				return 1
+
+		# Checks for valid data entry and mode changes and actions in auto mode
 
 		if (self.mode=="AUTO"):
 
@@ -128,6 +140,27 @@ class _state:
 
 			# VOICE FEEDBACK NEEDED
 			return 0
+
+		# Checks for valid data entry and mode changes and actions in parameter mode
+
+		if (self.mode=="PRM"):
+
+			if(textInput.startswith('prm-') and len(textInput)>4 and len(textInput)<10): # Then we have a parameter to consider
+
+				if (textInput.find('KH')!=-1): # Then we change the language to KH
+					self.lang="KH"
+					return 1
+
+				if (textInput.find('EN')!=-1): # Then we change the language to EN
+					self.lang="EN"
+					return 1
+
+			if(textInput.startswith('name-') and len(textInput)>5 and len(textInput)<20): # Then we have a renaming to perform
+
+				self.name = textInput.split('-')[1]
+				print(self.name)
+
+				return 1
 
 		print("Unrecognised mode")
 
@@ -198,6 +231,10 @@ class _state:
 
 		return 1
 
+	def postIntitialState(): # TODO implement logging to initial state service.
+
+		return 1
+
 	def uploadEvent(self):
 
 		# Package all data as a POST form
@@ -252,7 +289,7 @@ class _state:
 		else:
 			self.playVoice("Ready for new operation")
 
-	def announceMissingInfo():
+	def announceMissingInfo(self):
 
 		# Take a look at what's missing from the state currently, then string together voice snippets to annouce it clearly.
 
