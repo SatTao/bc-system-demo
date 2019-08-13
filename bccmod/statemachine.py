@@ -44,6 +44,9 @@ class _state:
 		self.committed = 0
 		self.storedEvents = []
 
+		self.timer = self.interactionTimer()
+		self.sfx = self.soundController()
+
 		self.interactionStartTime = None
 		self.interactionEndTime = None
 		self.lastInteractionTime = None
@@ -315,7 +318,7 @@ class _state:
 		self.lastInteractionTime = None
 
 		if(self.lang=="KH"):
-			self.playSound("nextpersoncanstart_KH.mp3") # Todo, make relative path to avoid problems on different systems.
+			self.playSound("nextpersoncanstart_KH.mp3")
 		else:
 			self.playVoice("Ready for new operation")
 
@@ -326,6 +329,38 @@ class _state:
 		# Probably need to standardise pauses around voice recordings so that the sounds flow nicely.
 
 		return 1
+
+	class interactionTimer:
+
+		def __init__(self):
+
+			self.startTime=None
+			self.stopTime=None
+			self.lastInteractionTimeTime=None
+
+		def start(self):
+			self.startTime=time.time()
+
+		def stop(self):
+			self.stopTime=time.time()
+
+		def getTiming(self):
+
+			return self.stopTime-self.startTime
+
+		def clear(self):
+
+			self.startTime=None
+			self.stopTime=None
+			self.lastInteractionTimeTime=None
+
+	class soundController:
+
+		def __init__(self):
+
+			self.lang = "KH"
+
+			print("ok, sound control is alive")
 
 
 
