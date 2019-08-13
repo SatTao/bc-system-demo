@@ -44,6 +44,10 @@ class _state:
 		self.committed = 0
 		self.storedEvents = []
 
+		self.interactionStartTime = None
+		self.interactionEndTime = None
+		self.lastInteractionTime = None
+
 		self.mode = "AUTO"
 		self.lang = "KH"
 		self.name = "default"
@@ -88,6 +92,9 @@ class _state:
 		if (self.mode=="AUTO"):
 
 			# Checks for valid data in AUTO mode
+
+			if (self.interactionStartTime == None): # Then this is the first parse of an interaction - set a timer
+				self.interactionStartTime = time.time()
 
 			if(textInput.startswith('bc') and len(textInput)>2 and len(textInput)<12): # Then we have a bc number we should enter
 				self.BCC = textInput
@@ -145,6 +152,8 @@ class _state:
 
 		if (self.mode=="PRM"):
 
+			self.interactionStartTime == None # Shouldn't record time spent on these interactions
+
 			if(textInput.startswith('prm-') and len(textInput)>4 and len(textInput)<10): # Then we have a parameter to consider
 
 				if (textInput.find('KH')!=-1): # Then we change the language to KH
@@ -174,7 +183,13 @@ class _state:
 	def isComplete(self):
 
 		if (self.BCC!=None and self.opNum!=None and self.empNum!=None and self.eventType!=None and self.committed!=0):
-			print("This event is complete")
+			
+			if(self.interactionStartTime): # Check we actually have a start time listed.
+				self.interactionEndTime = time.time()
+				self.lastInteractionTime = self.interactionEndTime - self.interactionStartTime # Should be in seconds
+
+			print("This event is complete in", str(round(self.lastInteractionTime)), 'seconds')
+
 			return 1
 		else:
 			return 0
@@ -186,6 +201,10 @@ class _state:
 		self.empNum = None
 		self.eventType = None
 		self.committed = 0
+
+		self.interactionStartTime = None
+		self.interactionEndTime = None
+		self.lastInteractionTime = None
 
 		print("Last event has been cleared - ready for new event")
 
@@ -208,7 +227,7 @@ class _state:
 	def prepLocalFile(self):
 
 		f = open(self.outputFilename, "w")
-		f.write(', '.join(["BCC", "EMP", "OP", "EVENT", ("TIME" + '\n')])) # comma separated values and builtin newline
+		f.write(', '.join(["BCC", "EMP", "OP", "EVENT", "TIME", ("PTIME" + '\n')])) # comma separated values and builtin newline
 		f.close()
 
 		return 1
@@ -221,7 +240,7 @@ class _state:
 		print("Got time: ",strTime)
 
 		f = open(self.outputFilename, "a")
-		f.write(', '.join([self.BCC, self.empNum, self.opNum, self.eventType, (strTime + '\n')])) # comma separated values and builtin newline
+		f.write(', '.join([self.BCC, self.empNum, self.opNum, self.eventType, strTime, (str(self.lastInteractionTime) + '\n')])) # comma separated values and builtin newline
 		f.close()
 
 		if(self.lang=="KH"):
@@ -246,7 +265,8 @@ class _state:
 		"opNum" : self.opNum,
 		"empNum" : self.empNum,
 		"action" : self.eventType,
-		"time" : strTime
+		"time" : strTime,
+		"Interaction time" : str(round(self.lastInteractionTime))
 		}
 
 		# Post it and check the response, return 0 if bad response or timeout
@@ -283,6 +303,10 @@ class _state:
 		return 1
 
 	def freshStart(self):
+
+		self.interactionStartTime = None
+		self.interactionEndTime = None
+		self.lastInteractionTime = None
 
 		if(self.lang=="KH"):
 			self.playSound("nextpersoncanstart_KH.mp3") # Todo, make relative path to avoid problems on different systems.
