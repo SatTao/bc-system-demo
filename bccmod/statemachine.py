@@ -218,6 +218,12 @@ class _state:
 
 		return 1
 
+	def playSoundNonBlock(self, soundFileName): # ONLY WORKS ON WINDOWS  : TODO implement in key places to avoid people having to wait before starting or correcting.
+
+		ps.playsound(os.path.join(_state.pwd,'../Voice',soundFileName),block=False)
+
+		return 1
+
 	def playVoice(self, asText):
 
 		_state.speak.Speak(asText)
@@ -266,7 +272,7 @@ class _state:
 		"empNum" : self.empNum,
 		"action" : self.eventType,
 		"time" : strTime,
-		"Interaction time" : str(round(self.lastInteractionTime))
+		"interactionTime" : str(round(self.lastInteractionTime))
 		}
 
 		# Post it and check the response, return 0 if bad response or timeout
