@@ -136,8 +136,8 @@ class _state:
 
 				if (textInput.find('clr')!=-1): # The user wants to clear everything
 					self.clearCurrent()
+					self.sfx.announceClearedAll()
 					print("Cleared all at user request")
-					# Maybe add voice feedback here
 					return 1
 
 			print("Unrecognised command in AUTO mode") # Default if we don't understand any command here
@@ -352,6 +352,13 @@ class _state:
 				ps.playsound(os.path.join(_state.pwd,'../Voice',"finishedthankyou_KH.mp3"),block=False)
 			else:
 				self.voiceFromText("Finished, thank you")
+
+		def announceClearedAll(self):
+
+			if(self.lang=="KH"):
+				ps.playsound(os.path.join(_state.pwd,'../Voice',"cancelledstartagain_KH.mp3"),block=False)
+			else:
+				self.voiceFromText("All cleared.")
 
 		def announceMissingInfo(self, bccnumber, employeenumber, operationnumber, action):
 
