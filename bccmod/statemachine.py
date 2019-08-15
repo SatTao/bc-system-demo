@@ -116,6 +116,10 @@ class _state:
 
 			if(textInput.startswith('act-') and len(textInput)>4 and len(textInput)<10): # Then we have an action to consider
 
+				if(textInput.find('tgt')!=-1): # This is the practice target code, for helping people to practice scanning codes quickly
+					self.sfx.announceOK()
+					return 1
+
 				if (textInput.find('bgn1')!=-1): # Then we record a start event
 					self.eventType="start1"
 					self.sfx.announceOK()
