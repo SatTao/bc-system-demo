@@ -129,7 +129,7 @@ class _state:
 					self.committed=1
 					if (not self.isComplete()):
 						self.committed = 0 # Keep us uncommitted if there's not enough data yet
-						self.announceMissingInfo()
+						self.sfx.announceMissingInfo(self.BCC, self.empNum, self.opNum, self.eventType)
 					
 					self.showEvent()
 					return 1
@@ -288,13 +288,6 @@ class _state:
 
 		self.sfx.announceFreshStart()
 
-	def announceMissingInfo(self):
-
-		# Take a look at what's missing from the state currently, then string together voice snippets to annouce it clearly.
-
-		# Probably need to standardise pauses around voice recordings so that the sounds flow nicely.
-
-		return 1
 
 	class interactionTimer:
 
@@ -359,6 +352,51 @@ class _state:
 				ps.playsound(os.path.join(_state.pwd,'../Voice',"finishedthankyou_KH.mp3"),block=False)
 			else:
 				self.voiceFromText("Finished, thank you")
+
+		def announceMissingInfo(self, bccnumber, employeenumber, operationnumber, action):
+
+			# Always called when there is something missing
+
+			if(self.lang=="KH"):
+				ps.playsound(os.path.join(_state.pwd,'../Voice',"pleasedontforgettoput_KH.mp3"),block=True)
+			else:
+				self.voiceFromText("Don't forget to put")
+
+			if not bccnumber:
+				
+				if(self.lang=="KH"):
+					time.sleep(0.2)
+					ps.playsound(os.path.join(_state.pwd,'../Voice',"bcccode_KH.mp3"),block=True)
+				else:
+					self.voiceFromText("BCC number")
+
+			if not employeenumber:
+				
+				if(self.lang=="KH"):
+					time.sleep(0.2)
+					ps.playsound(os.path.join(_state.pwd,'../Voice',"employeenumber_KH.mp3"),block=True)
+				else:
+					self.voiceFromText("Employee number")
+
+			if not operationnumber:
+				
+				if(self.lang=="KH"):
+					time.sleep(0.2)
+					ps.playsound(os.path.join(_state.pwd,'../Voice',"operationnumber_KH.mp3"),block=True)
+				else:
+					self.voiceFromText("operation number")
+
+			if not action:
+
+				if(self.lang=="KH"):
+					time.sleep(0.2)
+					ps.playsound(os.path.join(_state.pwd,'../Voice',"startorfinish_KH.mp3"),block=True)
+				else:
+					self.voiceFromText("if you are starting or finishing.")
+
+			# Probably need to standardise pauses around voice recordings so that the sounds flow nicely.
+
+			return 1
 			
 		
 
