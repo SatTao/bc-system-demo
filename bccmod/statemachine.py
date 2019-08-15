@@ -25,6 +25,10 @@ import os
 import random
 import string
 
+# Used in number announcements
+
+import math
+
 class _state:
 
 	pwd = os.path.dirname(__file__) # Gets absolute path to the directory that contains this file, not calling location.
@@ -401,9 +405,92 @@ class _state:
 				else:
 					self.voiceFromText("if you are starting or finishing.")
 
-			# Probably need to standardise pauses around voice recordings so that the sounds flow nicely.
+			return 1
+
+		def announceNumber(self, number):
+
+			# Takes an integer and speaks it. Only works up to 999. Can easily modify to support more.
+
+			# Use a dictionary to refer to the filenames for ease of access
+
+			KH_numbers = {
+			0 : "zero_KH.mp3",
+			1 : "one_KH.mp3",
+			2 : "two_KH.mp3",
+			3 : "three_KH.mp3",
+			4 : "four_KH.mp3",
+			5 : "five_KH.mp3",
+			6 : "six_KH.mp3",
+			7 : "seven_KH.mp3",
+			8 : "eight_KH.mp3",
+			9 : "nine_KH.mp3",
+			10 : "ten_KH.mp3",
+			20 : "twenty_KH.mp3",
+			30 : "thirty_KH.mp3",
+			40 : "forty_KH.mp3",
+			50 : "fifty_KH.mp3",
+			60 : "sixty_KH.mp3",
+			70 : "seventy_KH.mp3",
+			80 : "eighty_KH.mp3",
+			90 : "ninety_KH.mp3",
+			100: "hundred_KH.mp3"
+			}
+
+			number = int(float(number)) # Just in case
+
+			if (number > 999 or number < 0): # it's an unsupported number
+				return 0
+
+			leftovers = number
+
+			# Find multiples of one hundred in the number
+
+			hundreds = math.floor(leftovers/100)
+			leftovers = leftovers%100
+
+			# Find multiples of ten in the number
+
+			tens = math.floor(leftovers/10)
+			leftovers = leftovers%10
+
+			# Find units in the number
+
+			ones = leftovers
+
+			print("hundreds:",hundreds,"tens:",tens,"ones:",ones)
+
+			if self.lang == "KH":
+
+				if hundreds>0:
+
+					# say hundreds then "hundred"
+
+					ps.playsound(os.path.join(_state.pwd,'../Voice',KH_numbers[hundreds]),block=True)
+
+					ps.playsound(os.path.join(_state.pwd,'../Voice',KH_numbers[100]),block=True)
+
+				if tens>0:
+
+					# say the relevant multiple of ten
+
+					tens = tens*10 # because there are unique names for all multiples of 10 less than 100
+
+					ps.playsound(os.path.join(_state.pwd,'../Voice',KH_numbers[tens]),block=True)
+
+				if ( (ones>0) or (hundreds == 0 and tens == 0) ):
+
+					ps.playsound(os.path.join(_state.pwd,'../Voice',KH_numbers[ones]),block=True)
+
+			else:
+
+				self.voiceFromText(str(number)) # in english it's simple lol
+
 
 			return 1
+
+
+
+
 			
 		
 
