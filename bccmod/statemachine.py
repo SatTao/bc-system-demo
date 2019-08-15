@@ -99,14 +99,17 @@ class _state:
 
 			if(textInput.startswith('bc') and len(textInput)>2 and len(textInput)<12): # Then we have a bc number we should enter
 				self.BCC = textInput
+				self.sfx.announceOK()
 				return 1
 
 			if(textInput.startswith('op') and len(textInput)>2 and len(textInput)<5): # Then we have a op number we should enter
 				self.opNum = textInput
+				self.sfx.announceOperationNumber(self.opNum)
 				return 1
 
 			if(textInput.startswith('20') and len(textInput)>8 and len(textInput)<11): # Then we have a employee number we should enter
 				self.empNum = textInput
+				self.sfx.announceOK()
 				return 1
 
 			# Checks for valid actions in AUTO mode
@@ -115,18 +118,22 @@ class _state:
 
 				if (textInput.find('bgn1')!=-1): # Then we record a start event
 					self.eventType="start1"
+					self.sfx.announceOK()
 					return 1
 
 				if (textInput.find('fin1')!=-1): # Then we record a start event
 					self.eventType="finish1"
+					self.sfx.announceOK()
 					return 1
 
 				if (textInput.find('bgn2')!=-1): # Then we record a start event
 					self.eventType="start2"
+					self.sfx.announceOK()
 					return 1
 
 				if (textInput.find('fin2')!=-1): # Then we record a start event
 					self.eventType="finish2"
+					self.sfx.announceOK()
 					return 1
 
 				if (textInput.find('ok')!=-1): # Then the user wants to commit data, we should check if it's ok
@@ -159,16 +166,19 @@ class _state:
 
 				if (textInput.find('kh')!=-1): # Then we change the language to KH
 					self.sfx.lang="KH"
+					self.sfx.announceOK()
 					return 1
 
 				if (textInput.find('en')!=-1): # Then we change the language to EN
 					self.sfx.lang="EN"
+					self.sfx.announceOK()
 					return 1
 
 			if(textInput.startswith('name-') and len(textInput)>5 and len(textInput)<20): # Then we have a renaming to perform
 
 				self.name = textInput.split('-')[1]
 				print(self.name)
+				self.sfx.announceOK()
 
 				return 1
 
@@ -407,6 +417,33 @@ class _state:
 
 			return 1
 
+		def announceOperationNumber(self, opNum):
+
+			n = int(opNum.split("op")[1]) # get a sensible number out of a string that looks like "op<int>""
+
+			if(self.lang=="KH"):
+				ps.playsound(os.path.join(_state.pwd,'../Voice',"operation_KH.mp3"),block=True)
+				self.announceNumber(n)
+			else:
+				self.voiceFromText("operation"+str(n))
+
+			return 1
+
+		def announceOK(self):
+
+			ps.playsound(os.path.join(_state.pwd,'../Voice',"ok_KH.mp3"),block=False)
+
+		def announceProblem(self):
+
+			# not currently useful but may be in the future
+
+			if(self.lang=="KH"):
+				ps.playsound(os.path.join(_state.pwd,'../Voice',"systemproblem_KH.mp3"),block=True)
+			else:
+				self.voiceFromText("Sorry, the system has a problem. Please call a supervisor.")
+
+			return 1
+
 		def announceNumber(self, number):
 
 			# Takes an integer and speaks it. Only works up to 999. Can easily modify to support more.
@@ -457,7 +494,7 @@ class _state:
 
 			ones = leftovers
 
-			print("hundreds:",hundreds,"tens:",tens,"ones:",ones)
+			# print("hundreds:",hundreds,"tens:",tens,"ones:",ones)
 
 			if self.lang == "KH":
 
