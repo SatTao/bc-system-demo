@@ -1,0 +1,14 @@
+<?wpl version="1.0"?>
+<smil>
+    <head>
+        <meta name="Generator" content="Microsoft Windows Media Player -- 12.0.17763.678"/>
+        <meta name="ItemCount" content="1"/>
+        <title>voice imports</title>
+    </head>
+    <body>
+        <seq>
+            <media src="C:\Users\LEO JOFEH\Downloads\Voice record 1.m4a" tid="{E20E6191-A186-4A14-9AF5-D5E3982A1112}"/>
+            <media src="C:\Users\LEO JOFEH\Downloads\Voice record 2.m4a"/>
+        </seq>
+    </body>
+</smil>

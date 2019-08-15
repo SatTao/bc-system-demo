@@ -30,7 +30,6 @@ class _state:
 	pwd = os.path.dirname(__file__) # Gets absolute path to the directory that contains this file, not calling location.
 	thingName = "PACTICS_demo" # reference for dweet
 	dataEndpoint = "https://www.dweet.io/dweet/for/" + thingName # This will move to __init__() for multiple instances, with names from config barcode.
-	speak = wincl.Dispatch("SAPI.SpVoice") # invoking the builtin voice functionality in windows 10
 	writePath = os.path.join(pwd,'../output/')
 	# TODO add config path and handle config file reading and writing, maybe implement using pickle for simplicity. or using scan codes - neater.
 
@@ -47,12 +46,7 @@ class _state:
 		self.timer = self.interactionTimer()
 		self.sfx = self.soundController()
 
-		self.interactionStartTime = None
-		self.interactionEndTime = None
-		self.lastInteractionTime = None
-
 		self.mode = "AUTO"
-		self.lang = "KH"
 		self.name = "default"
 
 		self.uniqueString = self.createRandomString()
@@ -96,8 +90,8 @@ class _state:
 
 			# Checks for valid data in AUTO mode
 
-			if (self.interactionStartTime == None): # Then this is the first parse of an interaction - set a timer
-				self.interactionStartTime = time.time()
+			if self.timer.isUnstarted(): # Then this is the first parse of an interaction - set a timer
+				self.timer.start()
 
 			if(textInput.startswith('bc') and len(textInput)>2 and len(textInput)<12): # Then we have a bc number we should enter
 				self.BCC = textInput
@@ -155,16 +149,16 @@ class _state:
 
 		if (self.mode=="PRM"):
 
-			self.interactionStartTime == None # Shouldn't record time spent on these interactions
+			self.timer.clear() # Shouldn't record time spent on these interactions
 
 			if(textInput.startswith('prm-') and len(textInput)>4 and len(textInput)<10): # Then we have a parameter to consider
 
-				if (textInput.find('KH')!=-1): # Then we change the language to KH
-					self.lang="KH"
+				if (textInput.find('kh')!=-1): # Then we change the language to KH
+					self.sfx.lang="KH"
 					return 1
 
-				if (textInput.find('EN')!=-1): # Then we change the language to EN
-					self.lang="EN"
+				if (textInput.find('en')!=-1): # Then we change the language to EN
+					self.sfx.lang="EN"
 					return 1
 
 			if(textInput.startswith('name-') and len(textInput)>5 and len(textInput)<20): # Then we have a renaming to perform
@@ -187,11 +181,11 @@ class _state:
 
 		if (self.BCC!=None and self.opNum!=None and self.empNum!=None and self.eventType!=None and self.committed!=0):
 			
-			if(self.interactionStartTime): # Check we actually have a start time listed.
-				self.interactionEndTime = time.time()
-				self.lastInteractionTime = self.interactionEndTime - self.interactionStartTime # Should be in seconds
-
-			print("This event is complete in", str(round(self.lastInteractionTime)), 'seconds')
+			if (not self.timer.isUnstarted()): # Check we actually have a start time listed.
+				self.timer.stop()
+				print("This event is complete in", str(round(self.timer.getTiming())), 'seconds')
+			else:
+				print("Complete with no timing available")
 
 			return 1
 		else:
@@ -205,31 +199,11 @@ class _state:
 		self.eventType = None
 		self.committed = 0
 
-		self.interactionStartTime = None
-		self.interactionEndTime = None
-		self.lastInteractionTime = None
+		self.timer.clear()
 
 		print("Last event has been cleared - ready for new event")
 
 		# VOICE FEEDBACK NEEDED
-		
-		return 1
-
-	def playSound(self, soundFileName):
-
-		ps.playsound(os.path.join(_state.pwd,'../Voice',soundFileName))
-
-		return 1
-
-	def playSoundNonBlock(self, soundFileName): # ONLY WORKS ON WINDOWS  : TODO implement in key places to avoid people having to wait before starting or correcting.
-
-		ps.playsound(os.path.join(_state.pwd,'../Voice',soundFileName),block=False)
-
-		return 1
-
-	def playVoice(self, asText):
-
-		_state.speak.Speak(asText)
 		
 		return 1
 
@@ -249,13 +223,10 @@ class _state:
 		print("Got time: ",strTime)
 
 		f = open(self.outputFilename, "a")
-		f.write(', '.join([self.BCC, self.empNum, self.opNum, self.eventType, strTime, (str(self.lastInteractionTime) + '\n')])) # comma separated values and builtin newline
+		f.write(', '.join([self.BCC, self.empNum, self.opNum, self.eventType, strTime, (str(self.timer.getTiming()) + '\n')])) # comma separated values and builtin newline
 		f.close()
 
-		if(self.lang=="KH"):
-			self.playSound("finishedthankyou_KH.mp3")
-		else:
-			self.playVoice("Finished, thank you")
+		self.sfx.announceCompleteState()
 
 		return 1
 
@@ -275,7 +246,7 @@ class _state:
 		"empNum" : self.empNum,
 		"action" : self.eventType,
 		"time" : strTime,
-		"interactionTime" : str(round(self.lastInteractionTime))
+		"interactionTime" : str(round(self.timer.getTiming()))
 		}
 
 		# Post it and check the response, return 0 if bad response or timeout
@@ -313,14 +284,9 @@ class _state:
 
 	def freshStart(self):
 
-		self.interactionStartTime = None
-		self.interactionEndTime = None
-		self.lastInteractionTime = None
+		self.timer.clear()
 
-		if(self.lang=="KH"):
-			self.playSound("nextpersoncanstart_KH.mp3")
-		else:
-			self.playVoice("Ready for new operation")
+		self.sfx.announceFreshStart()
 
 	def announceMissingInfo(self):
 
@@ -336,32 +302,66 @@ class _state:
 
 			self.startTime=None
 			self.stopTime=None
-			self.lastInteractionTimeTime=None
+			self.lastInteractionTime=None
 
 		def start(self):
 			self.startTime=time.time()
+
+		def isUnstarted(self):
+
+			if self.startTime==None:
+				return 1
+			else:
+				return 0
 
 		def stop(self):
 			self.stopTime=time.time()
 
 		def getTiming(self):
 
-			return self.stopTime-self.startTime
+			self.lastInteractionTime = self.stopTime-self.startTime
+
+			return self.lastInteractionTime
 
 		def clear(self):
 
 			self.startTime=None
 			self.stopTime=None
-			self.lastInteractionTimeTime=None
+			self.lastInteractionTime=None
 
 	class soundController:
 
 		def __init__(self):
 
 			self.lang = "KH"
+			self.speak = wincl.Dispatch("SAPI.SpVoice")
 
-			print("ok, sound control is alive")
+			print("SFX initialised")
 
+		def voiceFromText(self, asText):
 
+			self.speak.Speak(asText)
+
+			return 1
+
+		def announceFreshStart(self):
+
+			if(self.lang=="KH"):
+				ps.playsound(os.path.join(_state.pwd,'../Voice',"nextpersoncanstart_KH.mp3"),block=False)
+			else:
+				self.voiceFromText("Ready for new operation")
+
+			return 1
+
+		def announceCompleteState(self):
+
+			if(self.lang=="KH"):
+				ps.playsound(os.path.join(_state.pwd,'../Voice',"finishedthankyou_KH.mp3"),block=False)
+			else:
+				self.voiceFromText("Finished, thank you")
+			
+		
+
+	# TODO consider adding a file handling class and a realtime data handling class so these functions all look cleaner.
 
    	# End class
