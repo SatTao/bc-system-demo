@@ -124,3 +124,7 @@ dmypy.json
 
 # Excel backup save files
 ~$*.xlsx
+
+# Secrets folder for .ini files related to APIs and 3rd party services
+
+secrets/
