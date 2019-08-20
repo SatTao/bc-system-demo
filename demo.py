@@ -35,6 +35,7 @@ def go():
 		# station.playVoice("Recording operation data.")
 		writeOK = station.writeEventToLocalFile()
 		uploadOK = station.uploadEvent()
+		ISOK = station.postIntitialState()
 		if (not writeOK):
 			station.storeForLater()
 			station.playVoice("Failed to write.")

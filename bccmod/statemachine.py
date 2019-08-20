@@ -11,6 +11,10 @@ import playsound as ps # should be platform agnostic
 
 import requests as r
 
+# Initial State streaming
+
+from ISStreamer import Streamer
+
 # Handle dates and times
 
 import datetime as dt
@@ -35,6 +39,7 @@ class _state:
 	thingName = "PACTICS_demo" # reference for dweet
 	dataEndpoint = "https://www.dweet.io/dweet/for/" + thingName # This will move to __init__() for multiple instances, with names from config barcode.
 	writePath = os.path.join(pwd,'../output/')
+	configPath = os.path.join(pwd,'../secrets/')
 	# TODO add config path and handle config file reading and writing, maybe implement using pickle for simplicity. or using scan codes - neater.
 
 
@@ -66,6 +71,9 @@ class _state:
 		# I think the first version of a dashboard would probably use this and trigger if a station is silent for too long etc. 
 
 		self.prepLocalFile()
+
+		conf = ''.join([_state.configPath,"InitialStateConfig.ini"])
+		self.stream = Streamer.Streamer(bucket_key="M5LW9T38AJ4T", bucket_name="pacticstester", debug_level=1, ini_file_location=conf)
 
 	def createRandomString(self,length=6):
 
@@ -248,7 +256,18 @@ class _state:
 
 		return 1
 
-	def postIntitialState(): # TODO implement logging to initial state service.
+	def postIntitialState(self): # TODO implement logging to initial state service.
+
+		payload = {
+			"BCC" : self.BCC,
+			"opNum" : self.opNum,
+			"empNum" : self.empNum,
+			"action" : self.eventType,
+			"interactionTime" : str(round(self.timer.getTiming()))
+			}
+
+		self.stream.log_object(payload, key_prefix="")
+		self.stream.flush()
 
 		return 1
 
@@ -286,7 +305,7 @@ class _state:
 			return 0
 
 		print("Good POST to dweet for", _state.thingName)
-		return 1
+		return 1 
 
 		# TODO occasionally or if the last upload worked then retry anything in storedEvents
 
