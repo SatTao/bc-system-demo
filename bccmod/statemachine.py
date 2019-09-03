@@ -33,6 +33,10 @@ import string
 
 import math
 
+# Other related modules in bccmod
+
+from bccmod.interactiontimer import _interactionTimer
+
 class _state:
 
 	pwd = os.path.dirname(__file__) # Gets absolute path to the directory that contains this file, not calling location.
@@ -52,7 +56,7 @@ class _state:
 		self.committed = 0
 		self.storedEvents = []
 
-		self.timer = self.interactionTimer()
+		self.timer = _interactionTimer()
 		self.sfx = self.soundController()
 
 		self.mode = "AUTO"
@@ -291,16 +295,16 @@ class _state:
 		try:
 			response = r.post(_state.dataEndpoint,data=payload, timeout=5)
 			response.raise_for_status()
-		except requests.exceptions.HTTPError as errh:
+		except r.exceptions.HTTPError as errh:
 			print ("Http Error:",errh)
 			return 0
-		except requests.exceptions.ConnectionError as errc:
+		except r.exceptions.ConnectionError as errc:
 			print ("Error Connecting:",errc)
 			return 0
-		except requests.exceptions.Timeout as errt:
+		except r.exceptions.Timeout as errt:
 			print ("Timeout Error:",errt)
 			return 0
-		except requests.exceptions.RequestException as err:
+		except r.exceptions.RequestException as err:
 			print ("Oops: Something Else",err)
 			return 0
 
@@ -364,7 +368,7 @@ class _state:
 		def __init__(self):
 
 			self.lang = "KH"
-			self.speak = wincl.Dispatch("SAPI.SpVoice")
+			self.speak = wincl.Dispatch("SAPI.SpVoice") # TODO adjust for different operating systems.
 
 			print("SFX initialised")
 
