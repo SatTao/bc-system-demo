@@ -5,33 +5,33 @@ import time
 
 class _interactionTimer:
 
-		def __init__(self):
+	def __init__(self):
 
-			self.startTime=None
-			self.stopTime=None
-			self.lastInteractionTime=None
+		self.startTime=None
+		self.stopTime=None
+		self.lastInteractionTime=None
 
-		def start(self):
-			self.startTime=time.time()
+	def start(self):
+		self.startTime=time.time()
 
-		def isUnstarted(self):
+	def isUnstarted(self):
 
-			if self.startTime==None:
-				return 1
-			else:
-				return 0
+		if self.startTime==None:
+			return 1
+		else:
+			return 0
 
-		def stop(self):
-			self.stopTime=time.time()
+	def stop(self):
+		self.stopTime=time.time()
 
-		def getTiming(self):
+	def getTiming(self):
 
-			self.lastInteractionTime = self.stopTime-self.startTime
+		self.lastInteractionTime = self.stopTime-self.startTime
 
-			return self.lastInteractionTime
+		return self.lastInteractionTime
 
-		def clear(self):
+	def clear(self):
 
-			self.startTime=None
-			self.stopTime=None
-			self.lastInteractionTime=None
+		self.startTime=None
+		self.stopTime=None
+		self.lastInteractionTime=None

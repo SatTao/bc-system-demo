@@ -1,8 +1,6 @@
 # demonstration/hacky first attempt at new automated BC system input using barcode scanner.
 # (c) Leo Jofeh @ bespokh.com August 2019
 
-# Handle sound effects and t2v 
-
 # Handle https
 
 import requests as r
@@ -25,10 +23,6 @@ import os
 import random
 import string
 
-# Used in number announcements
-
-import math
-
 # Other related modules in bccmod
 
 from bccmod.interactiontimer import _interactionTimer
@@ -42,7 +36,6 @@ class _state:
 	writePath = os.path.join(pwd,'../output/')
 	configPath = os.path.join(pwd,'../secrets/')
 	# TODO add config path and handle config file reading and writing, maybe implement using pickle for simplicity. or using scan codes - neater.
-
 
 	def __init__(self):
 
@@ -127,6 +120,10 @@ class _state:
 
 				if(textInput.find('tgt')!=-1): # This is the practice target code, for helping people to practice scanning codes quickly
 					self.sfx.announceOK()
+					return 1
+
+				if(textInput.find('rpt')!=-1): # Repeat the last announcement
+					self.sfx.repeatLast()
 					return 1
 
 				if (textInput.find('bgn1')!=-1): # Then we record a start event

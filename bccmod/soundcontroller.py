@@ -1,6 +1,5 @@
 # soundcontroller.py
-
-#
+# (c) Leo Jofeh @ bespokh.com September 2019
 
 import time
 
@@ -201,3 +200,6 @@ class _soundController:
 
 
 		return 1
+
+	def repeatLast(self): # TODO make this work to repeat the last thing we said, and do nothing if there was no last announcement
+		return 0
