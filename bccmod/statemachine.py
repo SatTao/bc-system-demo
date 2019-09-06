@@ -163,7 +163,7 @@ class _state:
 
 			print("Unrecognised command in AUTO mode") # Default if we don't understand any command here
 
-			# VOICE FEEDBACK NEEDED
+			self.sfx.voiceFromText("Ot yul!") #TODO change this lol
 			return 0
 
 		# Checks for valid data entry and mode changes and actions in parameter mode

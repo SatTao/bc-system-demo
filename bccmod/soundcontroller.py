@@ -203,3 +203,11 @@ class _soundController:
 
 	def repeatLast(self): # TODO make this work to repeat the last thing we said, and do nothing if there was no last announcement
 		return 0
+
+
+# import pygame    since playsound doesn't work nicely on linux because of gstreamer apparently.
+# pygame.mixer.init()
+# pygame.mixer.music.load("myFile.wav")
+# pygame.mixer.music.play()
+# while pygame.mixer.music.get_busy() == True:
+#     continue
