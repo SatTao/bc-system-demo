@@ -9,7 +9,7 @@ import math
 
 import win32com.client as wincl # modify for other platforms
 
-import playsound as ps # should be platform agnostic
+import pygame.mixer as mix # This will handle sound from now on
 
 class _soundController:
 
@@ -19,114 +19,22 @@ class _soundController:
 		self.speak = wincl.Dispatch("SAPI.SpVoice") # TODO adjust for different operating systems.
 		self.pwd = pwd
 
-		print("SFX initialised")
+		mix.init() # Starts the pygame sound mixer
 
-	def voiceFromText(self, asText):
+		self.lastcommands = None
 
-		self.speak.Speak(asText)
-
-		return 1
-
-	def announceFreshStart(self):
-
-		if(self.lang=="KH"):
-			ps.playsound(os.path.join(self.pwd,'../Voice',"nextpersoncanstart_KH.mp3"),block=False)
-		else:
-			self.voiceFromText("Ready for new operation")
-
-		return 1
-
-	def announceCompleteState(self):
-
-		if(self.lang=="KH"):
-			ps.playsound(os.path.join(self.pwd,'../Voice',"finishedthankyou_KH.mp3"),block=False)
-		else:
-			self.voiceFromText("Finished, thank you")
-
-	def announceClearedAll(self):
-
-		if(self.lang=="KH"):
-			ps.playsound(os.path.join(self.pwd,'../Voice',"cancelledstartagain_KH.mp3"),block=False)
-		else:
-			self.voiceFromText("All cleared.")
-
-	def announceMissingInfo(self, bccnumber, employeenumber, operationnumber, action):
-
-		# Always called when there is something missing
-
-		if(self.lang=="KH"):
-			ps.playsound(os.path.join(self.pwd,'../Voice',"pleasedontforgettoput_KH.mp3"),block=True)
-		else:
-			self.voiceFromText("Don't forget to put")
-
-		if not bccnumber:
-			
-			if(self.lang=="KH"):
-				time.sleep(0.2)
-				ps.playsound(os.path.join(self.pwd,'../Voice',"bcccode_KH.mp3"),block=True)
-			else:
-				self.voiceFromText("BCC number")
-
-		if not employeenumber:
-			
-			if(self.lang=="KH"):
-				time.sleep(0.2)
-				ps.playsound(os.path.join(self.pwd,'../Voice',"employeenumber_KH.mp3"),block=True)
-			else:
-				self.voiceFromText("Employee number")
-
-		if not operationnumber:
-			
-			if(self.lang=="KH"):
-				time.sleep(0.2)
-				ps.playsound(os.path.join(self.pwd,'../Voice',"operationnumber_KH.mp3"),block=True)
-			else:
-				self.voiceFromText("operation number")
-
-		if not action:
-
-			if(self.lang=="KH"):
-				time.sleep(0.2)
-				ps.playsound(os.path.join(self.pwd,'../Voice',"startorfinish_KH.mp3"),block=True)
-			else:
-				self.voiceFromText("if you are starting or finishing.")
-
-		return 1
-
-	def announceOperationNumber(self, opNum):
-
-		n = int(opNum.split("op")[1]) # get a sensible number out of a string that looks like "op<int>""
-
-		if(self.lang=="KH"):
-			ps.playsound(os.path.join(self.pwd,'../Voice',"operation_KH.mp3"),block=True)
-			self.announceNumber(n)
-		else:
-			self.voiceFromText("operation"+str(n))
-
-		return 1
-
-	def announceOK(self):
-
-		ps.playsound(os.path.join(self.pwd,'../Voice',"ok_KH.mp3"),block=False)
-
-	def announceProblem(self):
-
-		# not currently useful but may be in the future
-
-		if(self.lang=="KH"):
-			ps.playsound(os.path.join(self.pwd,'../Voice',"systemproblem_KH.mp3"),block=True)
-		else:
-			self.voiceFromText("Sorry, the system has a problem. Please call a supervisor.")
-
-		return 1
-
-	def announceNumber(self, number):
-
-		# Takes an integer and speaks it. Only works up to 999. Can easily modify to support more.
-
-		# Use a dictionary to refer to the filenames for ease of access
-
-		KH_numbers = {
+		self.KH_samples = { # These files are available in ./Voices/
+		"freshstart":"nextpersoncanstart_KH.mp3",
+		"complete":"finishedthankyou_KH.mp3",
+		"clearall":"cancelledstartagain_KH.mp3",
+		"missing":"pleasedontforgettoput_KH.mp3",
+		"bcc":"bcccode_KH.mp3",
+		"employee":"employeenumber_KH.mp3",
+		"operationnumber":"operationnumber_KH.mp3",
+		"startorfinish":"startorfinish_KH.mp3",
+		"operation":"operation_KH.mp3",
+		"ok":"ok_KH.mp3",
+		"problem":"systemproblem_KH.mp3",
 		0 : "zero_KH.mp3",
 		1 : "one_KH.mp3",
 		2 : "two_KH.mp3",
@@ -148,6 +56,125 @@ class _soundController:
 		90 : "ninety_KH.mp3",
 		100: "hundred_KH.mp3"
 		}
+
+		self.EN_t2v_samples = { # For use with the system builtin text2speech functionality
+		"freshstart":"Ready for new operation.",
+		"complete":"Finished, thank you.",
+		"clearall":"All cleared.",
+		"missing":"Don't forget to put",
+		"bcc":"BCC number",
+		"employee":"Employee number",
+		"operationnumber":"Operation number",
+		"startorfinish":"if you are starting or finishing.",
+		"operation":"operation",
+		"ok":"OK",
+		"problem":"Sorry, the system has a problem. Please call a supervisor."
+		}
+
+		print("SFX initialised")
+
+	def announce(self, commands):
+
+		# Take a list of commands and announce them in a row. Keep a record of the last command list in case we need to repeat.
+
+		if(not isinstance(commands,list)): 
+			commands = [commands] # ensure it's a list
+
+		self.lastcommands = commands # record this command set as the last thing we did.
+
+		for index, message in enumerate(commands):
+
+			if(self.lang=="KH"):
+				mix.music.load(os.path.join(self.pwd,'../Voice',self.KH_samples[message]))
+				mix.music.play()
+				if (index+1)!=len(commands): # This command has one coming after it
+					blocking=True # Make sure that commands don't pile up in a row.
+				else:
+					blocking=False
+				if blocking:
+					while mix.music.get_busy() == True:
+					    continue
+			else:
+				# If a command is a single command and it's an integer, just say that. 
+
+				if isinstance(message, int):
+					self.voiceFromText(str(message)) # Handles numbers 
+				else:
+					self.voiceFromText(self.EN_t2v_samples[message])
+
+	def repeatLast(self): 
+
+		if (self.lastcommands != None): # There was a latest command
+
+			self.announce(self.lastcommands)
+
+	def voiceFromText(self, asText):
+
+		self.speak.Speak(asText)
+
+		return 1
+
+	def announceFreshStart(self):
+
+		self.announce('freshstart')
+
+	def announceCompleteState(self):
+
+		self.announce('complete')
+
+	def announceClearedAll(self):
+
+		self.announce('clearall')
+
+	def announceMissingInfo(self, bccnumber, employeenumber, operationnumber, action):
+
+		# Always called when there is something missing
+
+		cmd = ['missing']
+
+		if not bccnumber:
+			
+			cmd.append('bcc')
+
+		if not employeenumber:
+			
+			cmd.append('employee')
+
+		if not operationnumber:
+			
+			cmd.append('operationnumber')
+
+		if not action:
+
+			cmd.append('startorfinish')
+
+		self.announce(cmd)
+
+	def announceOperationNumber(self, opNum):
+
+		n = int(opNum.split("op")[1]) # get a sensible number out of a string that looks like "op<int>""
+
+		cmd=['operation']
+
+		for message in self.numberAsCommand(n):
+
+			cmd.append(message)
+
+		self.announce(cmd)
+
+	def announceOK(self):
+
+		self.announce('ok')
+
+	def announceProblem(self):
+
+		# not currently useful but may be in the future
+
+		self.announce('problem')
+
+	def numberAsCommand(self, number):
+
+		# Takes an integer and oututs a list of commands to produce it in speech. Only works up to 999. Can easily modify to support more.
 
 		number = int(float(number)) # Just in case
 
@@ -172,15 +199,16 @@ class _soundController:
 
 		# print("hundreds:",hundreds,"tens:",tens,"ones:",ones)
 
+		cmd = []
+
 		if self.lang == "KH":
 
 			if hundreds>0:
 
 				# say hundreds then "hundred"
 
-				ps.playsound(os.path.join(self.pwd,'../Voice',KH_numbers[hundreds]),block=True)
-
-				ps.playsound(os.path.join(self.pwd,'../Voice',KH_numbers[100]),block=True)
+				cmd.append(hundreds)
+				cmd.append(100)
 
 			if tens>0:
 
@@ -188,26 +216,14 @@ class _soundController:
 
 				tens = tens*10 # because there are unique names for all multiples of 10 less than 100
 
-				ps.playsound(os.path.join(self.pwd,'../Voice',KH_numbers[tens]),block=True)
+				cmd.append(tens)
 
 			if ( (ones>0) or (hundreds == 0 and tens == 0) ):
 
-				ps.playsound(os.path.join(self.pwd,'../Voice',KH_numbers[ones]),block=True)
+				cmd.append(ones)
 
 		else:
 
-			self.voiceFromText(str(number)) # in english it's simple lol
+			cmd.append(number) # Retrun the number as is for EN speaking purposes
 
-
-		return 1
-
-	def repeatLast(self): # TODO make this work to repeat the last thing we said, and do nothing if there was no last announcement
-		return 0
-
-
-# import pygame    since playsound doesn't work nicely on linux because of gstreamer apparently.
-# pygame.mixer.init()
-# pygame.mixer.music.load("myFile.wav")
-# pygame.mixer.music.play()
-# while pygame.mixer.music.get_busy() == True:
-#     continue
+		return cmd

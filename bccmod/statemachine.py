@@ -14,9 +14,11 @@ from ISStreamer import Streamer
 import datetime as dt
 import time
 
-# Handle OS
+# Handle OS, platform, config files
 
 import os
+import platform
+import configparser
 
 # Handle random string generation
 
@@ -35,6 +37,7 @@ class _state:
 	dataEndpoint = "https://www.dweet.io/dweet/for/" + thingName # This will move to __init__() for multiple instances, with names from config barcode.
 	writePath = os.path.join(pwd,'../output/')
 	configPath = os.path.join(pwd,'../secrets/')
+	thisPlatform = platform.platform()
 	# TODO add config path and handle config file reading and writing, maybe implement using pickle for simplicity. or using scan codes - neater.
 
 	def __init__(self):
@@ -164,6 +167,7 @@ class _state:
 			print("Unrecognised command in AUTO mode") # Default if we don't understand any command here
 
 			self.sfx.voiceFromText("Ot yul!") #TODO change this lol
+			
 			return 0
 
 		# Checks for valid data entry and mode changes and actions in parameter mode
