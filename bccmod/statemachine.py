@@ -205,7 +205,7 @@ class _state:
 
 	def showEvent(self):
 
-		self.output.terminalOutput('Employee {} reports {} for step {} on card {} - committed: {}'.format(self.empNum, self.eventType, self.opNum, self.BCC, self.committed))
+		self.output.terminalOutput('Employee {} reports {} for step {} on card {} - committed: {}'.format(self.empNum, self.eventType, self.opNum, self.BCC, self.committed),style='INFO')
 
 	def isComplete(self):
 
@@ -213,7 +213,6 @@ class _state:
 			
 			if (not self.timer.isUnstarted()): # Check we actually have a start time listed.
 				self.timer.stop()
-				self.output.terminalOutput("This event is complete in {} seconds".format(str(round(self.timer.getTiming()))),style='INFO')
 			else:
 				self.output.terminalOutput("Complete with no timing available",style='ALERT')
 
@@ -251,6 +250,8 @@ class _state:
 
 		strTime = dt.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
 		self.output.terminalOutput("Got time: {}".format(strTime),style='INFO')
+
+		#TODO - try this and report an error if it doesn't work.
 
 		f = open(self.outputFilename, "a")
 		f.write(', '.join([self.BCC, self.empNum, self.opNum, self.eventType, strTime, (str(self.timer.getTiming()) + '\n')])) # comma separated values and builtin newline
@@ -308,7 +309,7 @@ class _state:
 			self.output.terminalOutput("Oops: Something Else {}".format(err),style='ALERT')
 			return 0
 
-		self.output.terminalOutput("Good POST to dweet.io",style='INFO')
+		self.output.terminalOutput("Good POST to dweet.io",style='SUCCESS')
 		return 1 
 
 		# TODO occasionally or if the last upload worked then retry anything in storedEvents

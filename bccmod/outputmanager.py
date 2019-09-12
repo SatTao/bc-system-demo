@@ -17,6 +17,7 @@ class _outputManager():
 		self.NORM = '\033[0;37;40m' # Regular white text on black background
 		self.ALERT = '\033[1;31;40m' # Bold red text on black background
 		self.INFO = '\033[1;34;40m' # Bold blue text on black background
+		self.SUCCESS = '\033[1;32;40m' # Bold green text on black background
 
 
 	def terminalOutput(self, text, style='NORM'):
@@ -32,6 +33,10 @@ class _outputManager():
 			return
 		if style=='INFO' and self.ANSI:
 			message = self.INFO + text + self.NORM
+			print(message)
+			return
+		if style=='SUCCESS' and self.ANSI:
+			message = self.SUCCESS + text + self.NORM
 			print(message)
 			return
 

@@ -32,13 +32,12 @@ def go():
 			latest = input("Scan something: ") # should always end with a carriage return, and should always HAVE FOCUS otherwise this won't work.
 			station.parse(latest)
 			continue
-		# station.playVoice("Recording operation data.")
 		writeOK = station.writeEventToLocalFile()
 		uploadOK = station.uploadEvent()
 		ISOK = station.postIntitialState()
 		if (not writeOK):
 			station.storeForLater()
-			station.playVoice("Failed to write.")
+			
 		station.clearCurrent()
 		continue
 
