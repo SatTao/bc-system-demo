@@ -7,7 +7,14 @@ import os
 
 import math
 
-import win32com.client as wincl # modify for other platforms
+try:
+	import win32com.client as wincl # modify for other platforms
+	print('text2voice using win32com SAPI native')
+	t2v = True
+except ImportError:
+	print('No native text2voice system available. Skipping.')
+	t2v = False
+
 
 import pygame.mixer as mix # This will handle sound from now on
 
@@ -16,7 +23,7 @@ class _soundController:
 	def __init__(self, pwd): # Must include a pwd reference so we can access sound files etc.
 
 		self.lang = "KH"
-		self.speak = wincl.Dispatch("SAPI.SpVoice") # TODO adjust for different operating systems.
+		self.speak = wincl.Dispatch("SAPI.SpVoice") if t2v else None # TODO adjust for different operating systems.
 		self.pwd = pwd
 
 		mix.init() # Starts the pygame sound mixer
@@ -87,6 +94,7 @@ class _soundController:
 			if(self.lang=="KH"):
 				mix.music.load(os.path.join(self.pwd,'../Voice',self.KH_samples[message]))
 				mix.music.play()
+				#TODO check if there's some way to preload a bunch of samples in a row?
 				if (index+1)!=len(commands): # This command has one coming after it
 					blocking=True # Make sure that commands don't pile up in a row.
 				else:
@@ -94,8 +102,7 @@ class _soundController:
 				if blocking:
 					while mix.music.get_busy() == True:
 					    continue
-			else:
-				# If a command is a single command and it's an integer, just say that. 
+			else: 
 
 				if isinstance(message, int):
 					self.voiceFromText(str(message)) # Handles numbers 
@@ -110,7 +117,8 @@ class _soundController:
 
 	def voiceFromText(self, asText):
 
-		self.speak.Speak(asText)
+		if t2v:
+			self.speak.Speak(asText)
 
 		return 1
 

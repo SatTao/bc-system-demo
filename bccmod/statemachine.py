@@ -29,6 +29,7 @@ import string
 
 from bccmod.interactiontimer import _interactionTimer
 from bccmod.soundcontroller import _soundController
+from bccmod.outputmanager import _outputManager
 
 class _state:
 
@@ -51,6 +52,7 @@ class _state:
 
 		self.timer = _interactionTimer()
 		self.sfx = _soundController(_state.pwd)
+		self.output = _outputManager()
 
 		self.mode = "AUTO"
 		self.name = "default"
@@ -58,8 +60,8 @@ class _state:
 		self.uniqueString = self.createRandomString()
 		self.outputFilename = ''.join([_state.writePath, dt.datetime.now().strftime("%Y-%m-%d_"), self.uniqueString, ".csv"])
 
-		print("Output will be written to", self.outputFilename)
-		print("Realtime data will be streamed to https://www.dweet.io/follow/" + _state.thingName)
+		self.output.terminalOutput("Output will be written to {}".format(self.outputFilename), style='INFO')
+		self.output.terminalOutput("Realtime data will be streamed to https://www.dweet.io/follow/{}".format(_state.thingName), style='INFO')
 
 		# TODO - Allow for collecting config info from a specific file location, read it in line by line as now using the parse function. 
 		# Might consider making a special code to allow to change the name of the device and it will update its own config file to match when changed that way.
@@ -161,10 +163,10 @@ class _state:
 				if (textInput.find('clr')!=-1): # The user wants to clear everything
 					self.clearCurrent()
 					self.sfx.announceClearedAll()
-					print("Cleared all at user request")
+					self.output.terminalOutput('Cleared all at user request', style='ALERT')
 					return 1
 
-			print("Unrecognised command in AUTO mode") # Default if we don't understand any command here
+			self.output.terminalOutput('Unrecognised command in AUTO mode',style='ALERT') # Default if we don't understand any command here
 
 			self.sfx.voiceFromText("Ot yul!") #TODO change this lol
 			
@@ -191,19 +193,19 @@ class _state:
 			if(textInput.startswith('name-') and len(textInput)>5 and len(textInput)<20): # Then we have a renaming to perform
 
 				self.name = textInput.split('-')[1]
-				print(self.name)
+				self.output.terminalOutput('New station name is: {}'.format(self.name), style='INFO')
 				self.sfx.announceOK()
 
 				return 1
 
-		print("Unrecognised mode")
+		self.output.terminalOutput('Unrecognised mode',style='ALERT')
 
 		# VOICE FEEDBACK NEEDED
 		return 0
 
 	def showEvent(self):
 
-		print(self.BCC, self.opNum, self.empNum, self.eventType, self.committed)
+		self.output.terminalOutput('Employee {} reports {} for step {} on card {} - committed: {}'.format(self.empNum, self.eventType, self.opNum, self.BCC, self.committed))
 
 	def isComplete(self):
 
@@ -211,9 +213,9 @@ class _state:
 			
 			if (not self.timer.isUnstarted()): # Check we actually have a start time listed.
 				self.timer.stop()
-				print("This event is complete in", str(round(self.timer.getTiming())), 'seconds')
+				self.output.terminalOutput("This event is complete in {} seconds".format(str(round(self.timer.getTiming()))),style='INFO')
 			else:
-				print("Complete with no timing available")
+				self.output.terminalOutput("Complete with no timing available",style='ALERT')
 
 			return 1
 		else:
@@ -229,7 +231,7 @@ class _state:
 
 		self.timer.clear()
 
-		print("Last event has been cleared - ready for new event")
+		self.output.terminalOutput("Last event has been cleared - ready for new event",style='INFO')
 
 		# VOICE FEEDBACK NEEDED
 		
@@ -248,7 +250,7 @@ class _state:
 		# To do - think about modifying the file layout to more closely mirror existing BCC reports, so the event type field now dictates position in the row rather than being an entry of itself.
 
 		strTime = dt.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
-		print("Got time: ",strTime)
+		self.output.terminalOutput("Got time: {}".format(strTime),style='INFO')
 
 		f = open(self.outputFilename, "a")
 		f.write(', '.join([self.BCC, self.empNum, self.opNum, self.eventType, strTime, (str(self.timer.getTiming()) + '\n')])) # comma separated values and builtin newline
@@ -289,30 +291,30 @@ class _state:
 		}
 
 		# Post it and check the response, return 0 if bad response or timeout
-		print("Attempting to POST")
+		self.output.terminalOutput("Attempting to POST")
 		try:
 			response = r.post(_state.dataEndpoint,data=payload, timeout=5)
 			response.raise_for_status()
 		except r.exceptions.HTTPError as errh:
-			print ("Http Error:",errh)
+			self.output.terminalOutput("Http Error: {}".format(errh),style='ALERT')
 			return 0
 		except r.exceptions.ConnectionError as errc:
-			print ("Error Connecting:",errc)
+			self.output.terminalOutput("Error Connecting: {}".format(errc),style='ALERT')
 			return 0
 		except r.exceptions.Timeout as errt:
-			print ("Timeout Error:",errt)
+			self.output.terminalOutput("Timeout Error: {}".format(errt),style='ALERT')
 			return 0
 		except r.exceptions.RequestException as err:
-			print ("Oops: Something Else",err)
+			self.output.terminalOutput("Oops: Something Else {}".format(err),style='ALERT')
 			return 0
 
-		print("Good POST to dweet for", _state.thingName)
+		self.output.terminalOutput("Good POST to dweet.io",style='INFO')
 		return 1 
 
 		# TODO occasionally or if the last upload worked then retry anything in storedEvents
 
 	def storeForLater(self):
-		print ("Storing for later")
+		self.output.terminalOutput("Storing for later",style='INFO')
 		# TODO help this class remember events that failed to upload because of internet connection.
 		# self.storedEvents.append(info)
 		return 1
