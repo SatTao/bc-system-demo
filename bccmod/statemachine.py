@@ -86,6 +86,10 @@ class _state:
 
 		# Check for mode changes
 
+		# TODO add a code which runs exit() to break out of the application and return to command line. Announce audio. Make it a PRM mode change - PRM-EXIT for example.
+
+		# TODO remove 'mode' switching requirement. Just check the code and switch on it, make things easier.
+
 		if(textInput.startswith('mode-') and len(textInput)>5 and len(textInput)<10): # Then we have a mode change to consider
 
 			if (textInput.find('auto')!=-1):
@@ -198,9 +202,17 @@ class _state:
 
 				return 1
 
+			if(textInput.startswith('ctrl-') and len(textInput)54 and len(textInput)<10): # Then we have a control function to run
+
+				if (textInput.find('exit')!=-1): # Then we need to quit the application
+					self.output.terminalOutput('Exit application', style='ALERT')
+					self.sfx.announceOK()
+					exit()
+					return 1
+
 		self.output.terminalOutput('Unrecognised mode',style='ALERT')
 
-		# VOICE FEEDBACK NEEDED
+		# VOICE FEEDBACK NEEDED??
 		return 0
 
 	def showEvent(self):
@@ -236,7 +248,7 @@ class _state:
 		
 		return 1
 
-	def prepLocalFile(self):
+	def prepLocalFile(self): #TODO  Move and improve this function to outputmanager - clean and tidy.
 
 		f = open(self.outputFilename, "w")
 		f.write(', '.join(["BCC", "EMP", "OP", "EVENT", "TIME", ("PTIME" + '\n')])) # comma separated values and builtin newline
@@ -261,7 +273,7 @@ class _state:
 
 		return 1
 
-	def postIntitialState(self): # TODO implement logging to initial state service.
+	def postIntitialState(self): # TODO Move and improve this function to outputmanager - clean and tidy.
 
 		payload = {
 			"BCC" : self.BCC,
@@ -271,12 +283,15 @@ class _state:
 			"interactionTime" : str(round(self.timer.getTiming()))
 			}
 
+
+		# TODO modify to catch exceptions here and deal with them.
+
 		self.stream.log_object(payload, key_prefix="")
 		self.stream.flush()
 
 		return 1
 
-	def uploadEvent(self):
+	def uploadEvent(self): # TODO Move and improve this function to outputmanager - clean and tidy.
 
 		# Package all data as a POST form
 
@@ -292,7 +307,7 @@ class _state:
 		}
 
 		# Post it and check the response, return 0 if bad response or timeout
-		self.output.terminalOutput("Attempting to POST")
+		self.output.terminalOutput("Attempting to POST to Dweet.io")
 		try:
 			response = r.post(_state.dataEndpoint,data=payload, timeout=5)
 			response.raise_for_status()

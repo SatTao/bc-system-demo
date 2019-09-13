@@ -10,7 +10,7 @@ class _outputManager():
 
 	def __init__(self):
 
-		self.ANSI = True if platform.system().find('Linux')==1 else False # Check whether we can ANSI color format terminal output
+		self.ANSI = True if platform.system().find('Linux')!=-1 else False # Check whether we can ANSI color format terminal output
 
 		# ANSI style codes to prepend messages 
 
@@ -47,4 +47,8 @@ class _outputManager():
 	def postingOutput(self, otherfields):
 
 		return
+
+	# TODO this still needs to manage file preparation, some config parsing stuff, all the naming and file writing etc, and 
+	# for when we are running multi-day it should handle keeping multiple output files organised by day etc. 
+	# CONSIDER implementing an auto-FTP upload for log files or results files on a certain schedule.
 
