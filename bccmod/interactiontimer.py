@@ -35,3 +35,5 @@ class _interactionTimer:
 		self.startTime=None
 		self.stopTime=None
 		self.lastInteractionTime=None
+
+# TODO add Threading to provide a daemon stayalive function - prevent the device from sleeping without interrupting input stuff.

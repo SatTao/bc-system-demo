@@ -51,4 +51,5 @@ class _outputManager():
 	# TODO this still needs to manage file preparation, some config parsing stuff, all the naming and file writing etc, and 
 	# for when we are running multi-day it should handle keeping multiple output files organised by day etc. 
 	# CONSIDER implementing an auto-FTP upload for log files or results files on a certain schedule.
+	# Consider using threading to handle remote upload etc and keep track of what is going on, and retries if the upload didn't work.
 

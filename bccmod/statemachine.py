@@ -202,7 +202,7 @@ class _state:
 
 				return 1
 
-			if(textInput.startswith('ctrl-') and len(textInput)54 and len(textInput)<10): # Then we have a control function to run
+			if(textInput.startswith('ctrl-') and len(textInput)>5 and len(textInput)<10): # Then we have a control function to run
 
 				if (textInput.find('exit')!=-1): # Then we need to quit the application
 					self.output.terminalOutput('Exit application', style='ALERT')
