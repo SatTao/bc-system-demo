@@ -2,6 +2,7 @@
 # (c) Leo Jofeh @ bespokh.com September 2019
 
 import time
+from threading import Thread# Used for stayalive daemon
 
 class _interactionTimer:
 
@@ -10,6 +11,12 @@ class _interactionTimer:
 		self.startTime=None
 		self.stopTime=None
 		self.lastInteractionTime=None
+
+		self.lastInputTime=time.time()
+		self.stayAliveCycleTime = 10 # [seconds]
+
+		self.stayAliveDaemon = Thread(target=self.stayAlive,daemon=True,args=())
+		self.stayAliveDaemon.start()
 
 	def start(self):
 		self.startTime=time.time()
@@ -36,4 +43,15 @@ class _interactionTimer:
 		self.stopTime=None
 		self.lastInteractionTime=None
 
-# TODO add Threading to provide a daemon stayalive function - prevent the device from sleeping without interrupting input stuff.
+	def registerActiveInput(self):
+
+		self.lastInputTime=time.time()
+
+	def stayAlive(self):
+
+		while True:
+			time.sleep(10)
+			if (time.time() - self.lastInputTime > self.stayAliveCycleTime):
+				print("\n~StayAlive~\nScan something: ",end='')
+				self.registerActiveInput()
+			continue

@@ -83,6 +83,7 @@ class _state:
 	def parse(self, textInput):
 
 		textInput = textInput.lower()
+		self.timer.registerActiveInput() # Let's the timer know that we just recieved input
 
 		# Check for mode changes
 

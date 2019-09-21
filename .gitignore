@@ -124,7 +124,15 @@ dmypy.json
 
 # Excel backup save files
 ~$*.xlsx
+*.csv
 
 # Secrets folder for .ini files related to APIs and 3rd party services
 
 secrets/
+
+# Voice files that are irrelevant
+
+*.aup
+*.au
+
+
