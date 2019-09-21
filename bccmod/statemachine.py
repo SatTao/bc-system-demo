@@ -85,133 +85,103 @@ class _state:
 		textInput = textInput.lower()
 		self.timer.registerActiveInput() # Let's the timer know that we just recieved input
 
-		# Check for mode changes
+		# Checks for valid data entry
 
-		# TODO add a code which runs exit() to break out of the application and return to command line. Announce audio. Make it a PRM mode change - PRM-EXIT for example.
+		if(textInput.startswith('bc') and len(textInput)>2 and len(textInput)<12): # Then we have a bc number we should enter
+			self.BCC = textInput
+			self.sfx.announceOK()
+			return 1
 
-		# TODO remove 'mode' switching requirement. Just check the code and switch on it, make things easier.
+		if(textInput.startswith('op') and len(textInput)>2 and len(textInput)<5): # Then we have a op number we should enter
+			self.opNum = textInput
+			self.sfx.announceOperationNumber(self.opNum)
+			return 1
 
-		if(textInput.startswith('mode-') and len(textInput)>5 and len(textInput)<10): # Then we have a mode change to consider
+		if(textInput.startswith('20') and len(textInput)>8 and len(textInput)<11): # Then we have a employee number we should enter
+			self.empNum = textInput
+			self.sfx.announceOK()
+			return 1
 
-			if (textInput.find('auto')!=-1):
-				self.mode = 'AUTO'
-				return 1
-			if (textInput.find('prm')!=-1):
-				self.mode = 'PRM'
-				return 1
+		# Checks for valid actions
 
-		# Checks for valid data entry and mode changes and actions in auto mode
+		if(textInput.startswith('act-') and len(textInput)>4 and len(textInput)<10): # Then we have an action to consider
 
-		if (self.mode=="AUTO"):
-
-			# Checks for valid data in AUTO mode
-
-			if self.timer.isUnstarted(): # Then this is the first parse of an interaction - set a timer
-				self.timer.start()
-
-			if(textInput.startswith('bc') and len(textInput)>2 and len(textInput)<12): # Then we have a bc number we should enter
-				self.BCC = textInput
+			if(textInput.find('tgt')!=-1): # This is the practice target code, for helping people to practice scanning codes quickly
 				self.sfx.announceOK()
 				return 1
 
-			if(textInput.startswith('op') and len(textInput)>2 and len(textInput)<5): # Then we have a op number we should enter
-				self.opNum = textInput
-				self.sfx.announceOperationNumber(self.opNum)
+			if(textInput.find('rpt')!=-1): # Repeat the last announcement
+				self.sfx.repeatLast()
 				return 1
 
-			if(textInput.startswith('20') and len(textInput)>8 and len(textInput)<11): # Then we have a employee number we should enter
-				self.empNum = textInput
+			if (textInput.find('bgn1')!=-1): # Then we record a start event
+				self.eventType="start1"
 				self.sfx.announceOK()
 				return 1
 
-			# Checks for valid actions in AUTO mode
-
-			if(textInput.startswith('act-') and len(textInput)>4 and len(textInput)<10): # Then we have an action to consider
-
-				if(textInput.find('tgt')!=-1): # This is the practice target code, for helping people to practice scanning codes quickly
-					self.sfx.announceOK()
-					return 1
-
-				if(textInput.find('rpt')!=-1): # Repeat the last announcement
-					self.sfx.repeatLast()
-					return 1
-
-				if (textInput.find('bgn1')!=-1): # Then we record a start event
-					self.eventType="start1"
-					self.sfx.announceOK()
-					return 1
-
-				if (textInput.find('fin1')!=-1): # Then we record a start event
-					self.eventType="finish1"
-					self.sfx.announceOK()
-					return 1
-
-				if (textInput.find('bgn2')!=-1): # Then we record a start event
-					self.eventType="start2"
-					self.sfx.announceOK()
-					return 1
-
-				if (textInput.find('fin2')!=-1): # Then we record a start event
-					self.eventType="finish2"
-					self.sfx.announceOK()
-					return 1
-
-				if (textInput.find('ok')!=-1): # Then the user wants to commit data, we should check if it's ok
-					self.committed=1
-					if (not self.isComplete()):
-						self.committed = 0 # Keep us uncommitted if there's not enough data yet
-						self.sfx.announceMissingInfo(self.BCC, self.empNum, self.opNum, self.eventType)
-					
-					self.showEvent()
-					return 1
-
-				if (textInput.find('clr')!=-1): # The user wants to clear everything
-					self.clearCurrent()
-					self.sfx.announceClearedAll()
-					self.output.terminalOutput('Cleared all at user request', style='ALERT')
-					return 1
-
-			self.output.terminalOutput('Unrecognised command in AUTO mode',style='ALERT') # Default if we don't understand any command here
-
-			self.sfx.voiceFromText("Ot yul!") #TODO change this lol
-			
-			return 0
-
-		# Checks for valid data entry and mode changes and actions in parameter mode
-
-		if (self.mode=="PRM"):
-
-			self.timer.clear() # Shouldn't record time spent on these interactions
-
-			if(textInput.startswith('prm-') and len(textInput)>4 and len(textInput)<10): # Then we have a parameter to consider
-
-				if (textInput.find('kh')!=-1): # Then we change the language to KH
-					self.sfx.lang="KH"
-					self.sfx.announceOK()
-					return 1
-
-				if (textInput.find('en')!=-1): # Then we change the language to EN
-					self.sfx.lang="EN"
-					self.sfx.announceOK()
-					return 1
-
-			if(textInput.startswith('name-') and len(textInput)>5 and len(textInput)<20): # Then we have a renaming to perform
-
-				self.name = textInput.split('-')[1]
-				self.output.terminalOutput('New station name is: {}'.format(self.name), style='INFO')
+			if (textInput.find('fin1')!=-1): # Then we record a start event
+				self.eventType="finish1"
 				self.sfx.announceOK()
-
 				return 1
 
-			if(textInput.startswith('ctrl-') and len(textInput)>5 and len(textInput)<10): # Then we have a control function to run
+			if (textInput.find('bgn2')!=-1): # Then we record a start event
+				self.eventType="start2"
+				self.sfx.announceOK()
+				return 1
 
-				if (textInput.find('exit')!=-1): # Then we need to quit the application
-					self.output.terminalOutput('Exit application', style='ALERT')
-					self.sfx.announceOK()
-					exit()
-					return 1
+			if (textInput.find('fin2')!=-1): # Then we record a start event
+				self.eventType="finish2"
+				self.sfx.announceOK()
+				return 1
 
-		self.output.terminalOutput('Unrecognised mode',style='ALERT')
+			if (textInput.find('ok')!=-1): # Then the user wants to commit data, we should check if it's ok
+				self.committed=1
+				if (not self.isComplete()):
+					self.committed = 0 # Keep us uncommitted if there's not enough data yet
+					self.sfx.announceMissingInfo(self.BCC, self.empNum, self.opNum, self.eventType)
+				
+				self.showEvent()
+				return 1
+
+			if (textInput.find('clr')!=-1): # The user wants to clear everything
+				self.clearCurrent()
+				self.sfx.announceClearedAll()
+				self.output.terminalOutput('Cleared all at user request', style='ALERT')
+				return 1
+
+		# Checks for valid parameter changes
+
+		if(textInput.startswith('prm-') and len(textInput)>4 and len(textInput)<10): # Then we have a parameter to consider
+
+			if (textInput.find('kh')!=-1): # Then we change the language to KH
+				self.sfx.lang="KH"
+				self.sfx.announceOK()
+				return 1
+
+			if (textInput.find('en')!=-1): # Then we change the language to EN
+				self.sfx.lang="EN"
+				self.sfx.announceOK()
+				return 1
+
+		if(textInput.startswith('name-') and len(textInput)>5 and len(textInput)<20): # Then we have a renaming to perform
+
+			self.name = textInput.split('-')[1]
+			self.output.terminalOutput('New station name is: {}'.format(self.name), style='INFO')
+			self.sfx.announceOK()
+
+			return 1
+
+		# Checks for valid control commands
+
+		if(textInput.startswith('ctrl-') and len(textInput)>5 and len(textInput)<10): # Then we have a control function to run
+
+			if (textInput.find('exit')!=-1): # Then we need to quit the application
+				self.output.terminalOutput('Exit application', style='ALERT')
+				self.sfx.announceOK()
+				exit()
+				return 1
+
+		self.output.terminalOutput('Unrecognised command',style='ALERT')
 
 		# VOICE FEEDBACK NEEDED??
 		return 0
@@ -221,6 +191,13 @@ class _state:
 		self.output.terminalOutput('Employee {} reports {} for step {} on card {} - committed: {}'.format(self.empNum, self.eventType, self.opNum, self.BCC, self.committed),style='INFO')
 
 	def isComplete(self):
+
+		# Check if any field is filled in, and the timer is unstarted - then we should start a timer
+
+		if ((self.BCC!=None or self.opNum!=None or self.empNum!=None or self.eventType!=None) and self.timer.isUnstarted()):
+			self.timer.start()
+
+		# Now we check if it's complete
 
 		if (self.BCC!=None and self.opNum!=None and self.empNum!=None and self.eventType!=None and self.committed!=0):
 			
