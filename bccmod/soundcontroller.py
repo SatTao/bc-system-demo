@@ -7,6 +7,8 @@ import os
 
 import math
 
+import contextlib
+
 try:
 	import win32com.client as wincl # modify for other platforms
 	print('text2voice using win32com SAPI native')
@@ -15,8 +17,8 @@ except ImportError:
 	print('No native text2voice system available. Skipping.')
 	t2v = False
 
-
-import pygame.mixer as mix # This will handle sound from now on
+with contextlib.redirect_stdout(None):
+	import pygame.mixer as mix # This will handle sound from now on (but we supress the stupid output message)
 
 class _soundController:
 
@@ -26,7 +28,7 @@ class _soundController:
 		self.speak = wincl.Dispatch("SAPI.SpVoice") if t2v else None # TODO adjust for different operating systems.
 
 		self.voicePath = os.path.join(os.path.dirname(__file__),'../Voice/')
-
+		
 		mix.init() # Starts the pygame sound mixer
 
 		self.lastcommands = None
