@@ -2,7 +2,7 @@
 # (c) Leo Jofeh @ bespokh.com September 2019
 
 import time
-from threading import Thread# Used for stayalive daemon
+import threading # Used for stayalive daemon
 
 class _interactionTimer:
 
@@ -15,8 +15,12 @@ class _interactionTimer:
 		self.lastInputTime=time.time()
 		self.stayAliveCycleTime = 10 # [seconds]
 
-		self.stayAliveDaemon = Thread(target=self.stayAlive,daemon=True,args=())
-		self.stayAliveDaemon.start()
+		self.stayAliveDaemon = threading.Thread(target=self.stayAlive,daemon=True,args=())
+
+	def startKeepAlive(self):
+
+		if (not self.stayAliveDaemon.isAlive()):
+			self.stayAliveDaemon.start()
 
 	def start(self):
 		self.startTime=time.time()

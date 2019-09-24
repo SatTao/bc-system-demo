@@ -6,14 +6,15 @@
 
 # imports
 
-from bccmod.statemachine import _state
+from bccmod.statemachine import _station
 
 # MAGIC NUMBERS
 
 # Main control flow
 
 def go():
-	station = _state()
+	station = _station()
+	station.startKeepAlive() # Begins the keep alive daemon
 	running = True
 
 	while (running):

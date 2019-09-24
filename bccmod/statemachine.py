@@ -12,18 +12,13 @@ import os
 import platform
 import configparser
 
-# Handle random string generation
-
-import random
-import string
-
 # Other related modules in bccmod
 
 from bccmod.interactiontimer import _interactionTimer
 from bccmod.soundcontroller import _soundController
 from bccmod.outputmanager import _outputManager
 
-class _state:
+class _station:
 
 	pwd = os.path.dirname(__file__) # Gets absolute path to the directory that contains this file, not calling location.
 
@@ -42,21 +37,15 @@ class _state:
 		self.sfx = _soundController()
 		self.output = _outputManager()
 
+		self.event = _event(self)
+
 		self.name = "PACTICS_demo"
 
 		self.output.terminalOutput("\n\nStation ~{}~ is now active\n\n".format(self.name),style="SUCCESS")
 
 		# TODO - Allow for collecting config info from a specific file location, read it in line by line as now using the parse function. 
-		# Might consider making a special code to allow to change the name of the device and it will update its own config file to match when changed that way.
-		# Once implemented we should also send our name to dweet so we can see what data is from where, and check on downtime etc.
 
 		# I think the first version of a dashboard would probably use this and trigger if a station is silent for too long etc. 
-
-	def createRandomString(self,length=6):
-
-		random.seed()
-		lettersAndDigits = string.ascii_letters + string.digits
-		return ''.join(random.choice(lettersAndDigits) for i in range(length))
 
 	def parse(self, textInput):
 
@@ -242,6 +231,70 @@ class _state:
 
 		self.sfx.announceFreshStart()
 
-	# TODO consider adding a file handling class and a realtime data handling class so these functions all look cleaner.
+	def startKeepAlive(self):
+
+		self.timer.startKeepAlive()
 
    	# End class
+
+
+
+
+
+
+class _event:
+
+	# This class must keep track of all data for an event, and provide some useful functions
+
+	def __init__(self, station):
+
+		self.station = station
+
+		self.clearValues()
+
+		# DO something
+
+	def clearValues(self):
+
+		self.BCC = None
+		self.opNum = None
+		self.empNum = None
+		self.eventType = None
+		self.committed = 0
+
+		self.scrapValue = 0
+
+	def setBCC(self, incoming):
+
+		if (not isinstance(self.BCC, type(None))) and self.BCC!=incoming:
+			self.station.output.terminalOutput('Overwriting BC card number',style="INFO")
+
+		self.BCC=incoming
+
+	def setOpNum(self, incoming):
+
+		if (not isinstance(self.opNum, type(None))) and self.opNum!=incoming:
+			self.station.output.terminalOutput('Overwriting operation number',style="INFO")
+
+		self.opNum=incoming
+
+	def setEmpNum(self, incoming):
+
+		if (not isinstance(self.empNum, type(None))) and self.empNum!=incoming:
+			self.station.output.terminalOutput('Overwriting employee number',style="INFO")
+
+		self.empNum=incoming
+
+	def setEventType(self, incoming):
+
+		if (not isinstance(self.eventType, type(None))) and self.eventType!=incoming:
+			self.station.output.terminalOutput('Overwriting event type',style="INFO")
+
+		self.eventType=incoming
+
+	def getAsPayload(self):
+
+		# This should return the current event as a well-formed dictionary payload suitable for dweet or IS, or another service.
+
+		return {}
+
