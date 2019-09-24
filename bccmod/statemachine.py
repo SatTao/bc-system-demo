@@ -1,14 +1,6 @@
 # New automated BC system input using barcode scanner.
 # (c) Leo Jofeh @ bespokh.com August 2019
 
-# Handle https
-
-import requests as r
-
-# Initial State streaming
-
-from ISStreamer import Streamer
-
 # Handle dates and times
 
 import datetime as dt
@@ -34,7 +26,6 @@ from bccmod.outputmanager import _outputManager
 class _state:
 
 	pwd = os.path.dirname(__file__) # Gets absolute path to the directory that contains this file, not calling location.
-	configPath = os.path.join(pwd,'../secrets/')
 
 	# TODO add config path and handle config file reading and writing, maybe implement using pickle for simplicity. or using scan codes - neater.
 
@@ -53,14 +44,13 @@ class _state:
 
 		self.name = "PACTICS_demo"
 
+		self.output.terminalOutput("\n\nStation ~{}~ is now active\n\n".format(self.name),style="SUCCESS")
+
 		# TODO - Allow for collecting config info from a specific file location, read it in line by line as now using the parse function. 
 		# Might consider making a special code to allow to change the name of the device and it will update its own config file to match when changed that way.
 		# Once implemented we should also send our name to dweet so we can see what data is from where, and check on downtime etc.
 
 		# I think the first version of a dashboard would probably use this and trigger if a station is silent for too long etc. 
-
-		conf = ''.join([_state.configPath,"InitialStateConfig.ini"])
-		self.stream = Streamer.Streamer(bucket_key="M5LW9T38AJ4T", bucket_name="pacticstester", debug_level=1, ini_file_location=conf)
 
 	def createRandomString(self,length=6):
 
@@ -225,29 +215,16 @@ class _state:
 
 		return 1
 
-	def postIntitialState(self): # TODO Move and improve this function to outputmanager - clean and tidy.
-
-		payload = {
-			"BCC" : self.BCC,
-			"opNum" : self.opNum,
-			"empNum" : self.empNum,
-			"action" : self.eventType,
-			"interactionTime" : str(round(self.timer.getTiming()))
-			}
-
-		# TODO modify to catch exceptions here and deal with them.
-
-		self.stream.log_object(payload, key_prefix="")
-		self.stream.flush()
-
-		return 1
-
 	def uploadEvent(self):
 
 		strTime = dt.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
 		intTime = str(round(self.timer.getTiming()))
 
-		self.output.uploadEventToDweet(self.BCC, self.empNum, self.opNum, self.eventType, strTime, intTime)
+		statusDweet = self.output.uploadEventToDweet(self.BCC, self.empNum, self.opNum, self.eventType, strTime, intTime)
+
+		statusIS = self.output.uploadEventToInitialState(self.BCC, self.empNum, self.opNum, self.eventType, strTime, intTime)
+
+		return (statusDweet and statusIS)
 
 	def storeForLater(self):
 		self.output.terminalOutput("Storing for later",style='INFO')

@@ -14,3 +14,4 @@ List of changes and improvements that are TODO for bcc system
 - Adjust parse function so that it matches for exact text in commands, and only uses 'contains' etc for variables like empNum
 
 - for readability and storage, keep each event as a dictionary payload, and shift the dictionary around - it's probably more reliable to do this.
+- support scanning to indicate that you're on an hourly card

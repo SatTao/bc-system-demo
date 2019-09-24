@@ -6,17 +6,7 @@
 
 # imports
 
-# Class defs
-
 from bccmod.statemachine import _state
-
-# Handle dates and times
-
-import datetime as dt
-
-# Handle OS
-
-import os
 
 # MAGIC NUMBERS
 
@@ -34,7 +24,6 @@ def go():
 			continue
 		writeOK = station.writeEventToLocalFile()
 		uploadOK = station.uploadEvent()
-		ISOK = station.postIntitialState()
 		if (not writeOK):
 			station.storeForLater()
 			

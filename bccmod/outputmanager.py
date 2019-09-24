@@ -10,6 +10,7 @@ import datetime as dt
 import os
 import random
 import requests as r
+from ISStreamer import Streamer
 
 class _outputManager():
 
@@ -39,7 +40,12 @@ class _outputManager():
 		# Set up for dweet.io broadcasting
 
 		self.setDweetThingName('PACTICS_demo') # This may be changed later
-		self.terminalOutput("Realtime data will be streamed to https://www.dweet.io/follow/{}".format(self.dweetThingName), style='INFO')
+		self.terminalOutput("Realtime data will be streamed to https://www.dweet.io/follow/{}".format(self.dweetThingName))
+
+		# Set up InitialState broadcasting
+
+		conf = ''.join([self.configPath,"InitialStateConfig.ini"])
+		self.InitialStateStream = Streamer.Streamer(bucket_key="M5LW9T38AJ4T", bucket_name="pacticstester", debug_level=1, ini_file_location=conf)
 
 		self.terminalOutput("Output channels initialised")
 
@@ -141,8 +147,29 @@ class _outputManager():
 
 		# TODO occasionally or if the last upload worked then retry anything in storedEvents
 
+	# Functions to do with InitialState
 
-	# TODO this still needs to manage file preparation, some config parsing stuff, all the naming and file writing etc, and 
+	def uploadEventToInitialState(self, BCC, empNum, opNum, eventType, now, interactionTime):
+
+		payload = {
+		"BCC" : BCC,
+		"opNum" : opNum,
+		"empNum" : empNum,
+		"action" : eventType,
+		"time" : now,
+		"interactionTime" : interactionTime
+		}
+
+		try:
+			self.InitialStateStream.log_object(payload, key_prefix="")
+			self.InitialStateStream.flush()
+		except:
+			return 0 # Do something slightly more intelligent here
+			
+		return 1
+
+
+	# TODO some config parsing stuff, all the naming and file writing etc, and 
 	# for when we are running multi-day it should handle keeping multiple output files organised by day etc. 
 	# CONSIDER implementing an auto-FTP upload for log files or results files on a certain schedule.
 	# Consider using threading to handle remote upload etc and keep track of what is going on, and retries if the upload didn't work.
