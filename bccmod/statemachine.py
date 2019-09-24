@@ -1,4 +1,4 @@
-# demonstration/hacky first attempt at new automated BC system input using barcode scanner.
+# New automated BC system input using barcode scanner.
 # (c) Leo Jofeh @ bespokh.com August 2019
 
 # Handle https
@@ -34,11 +34,8 @@ from bccmod.outputmanager import _outputManager
 class _state:
 
 	pwd = os.path.dirname(__file__) # Gets absolute path to the directory that contains this file, not calling location.
-	thingName = "PACTICS_demo" # reference for dweet
-	dataEndpoint = "https://www.dweet.io/dweet/for/" + thingName # This will move to __init__() for multiple instances, with names from config barcode.
-	writePath = os.path.join(pwd,'../output/')
 	configPath = os.path.join(pwd,'../secrets/')
-	thisPlatform = platform.platform()
+
 	# TODO add config path and handle config file reading and writing, maybe implement using pickle for simplicity. or using scan codes - neater.
 
 	def __init__(self):
@@ -51,25 +48,16 @@ class _state:
 		self.storedEvents = []
 
 		self.timer = _interactionTimer()
-		self.sfx = _soundController(_state.pwd)
+		self.sfx = _soundController()
 		self.output = _outputManager()
 
-		self.mode = "AUTO"
-		self.name = "default"
-
-		self.uniqueString = self.createRandomString()
-		self.outputFilename = ''.join([_state.writePath, dt.datetime.now().strftime("%Y-%m-%d_"), self.uniqueString, ".csv"])
-
-		self.output.terminalOutput("Output will be written to {}".format(self.outputFilename), style='INFO')
-		self.output.terminalOutput("Realtime data will be streamed to https://www.dweet.io/follow/{}".format(_state.thingName), style='INFO')
+		self.name = "PACTICS_demo"
 
 		# TODO - Allow for collecting config info from a specific file location, read it in line by line as now using the parse function. 
 		# Might consider making a special code to allow to change the name of the device and it will update its own config file to match when changed that way.
 		# Once implemented we should also send our name to dweet so we can see what data is from where, and check on downtime etc.
 
 		# I think the first version of a dashboard would probably use this and trigger if a station is silent for too long etc. 
-
-		self.prepLocalFile()
 
 		conf = ''.join([_state.configPath,"InitialStateConfig.ini"])
 		self.stream = Streamer.Streamer(bucket_key="M5LW9T38AJ4T", bucket_name="pacticstester", debug_level=1, ini_file_location=conf)
@@ -167,6 +155,7 @@ class _state:
 
 			self.name = textInput.split('-')[1]
 			self.output.terminalOutput('New station name is: {}'.format(self.name), style='INFO')
+			self.output.setDweetThingName(self.name)
 			self.sfx.announceOK()
 
 			return 1
@@ -226,26 +215,11 @@ class _state:
 		
 		return 1
 
-	def prepLocalFile(self): #TODO  Move and improve this function to outputmanager - clean and tidy.
-
-		f = open(self.outputFilename, "w")
-		f.write(', '.join(["BCC", "EMP", "OP", "EVENT", "TIME", ("PTIME" + '\n')])) # comma separated values and builtin newline
-		f.close()
-
-		return 1
-
 	def writeEventToLocalFile(self):
 
-		# To do - think about modifying the file layout to more closely mirror existing BCC reports, so the event type field now dictates position in the row rather than being an entry of itself.
-
 		strTime = dt.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
-		self.output.terminalOutput("Got time: {}".format(strTime),style='INFO')
 
-		#TODO - try this and report an error if it doesn't work.
-
-		f = open(self.outputFilename, "a")
-		f.write(', '.join([self.BCC, self.empNum, self.opNum, self.eventType, strTime, (str(self.timer.getTiming()) + '\n')])) # comma separated values and builtin newline
-		f.close()
+		self.output.writeEventToLocalFile(self.BCC, self.empNum, self.opNum, self.eventType, strTime, self.timer.getTiming())
 
 		self.sfx.announceCompleteState()
 
@@ -261,7 +235,6 @@ class _state:
 			"interactionTime" : str(round(self.timer.getTiming()))
 			}
 
-
 		# TODO modify to catch exceptions here and deal with them.
 
 		self.stream.log_object(payload, key_prefix="")
@@ -269,43 +242,12 @@ class _state:
 
 		return 1
 
-	def uploadEvent(self): # TODO Move and improve this function to outputmanager - clean and tidy.
-
-		# Package all data as a POST form
+	def uploadEvent(self):
 
 		strTime = dt.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
+		intTime = str(round(self.timer.getTiming()))
 
-		payload = {
-		"BCC" : self.BCC,
-		"opNum" : self.opNum,
-		"empNum" : self.empNum,
-		"action" : self.eventType,
-		"time" : strTime,
-		"interactionTime" : str(round(self.timer.getTiming()))
-		}
-
-		# Post it and check the response, return 0 if bad response or timeout
-		self.output.terminalOutput("Attempting to POST to Dweet.io")
-		try:
-			response = r.post(_state.dataEndpoint,data=payload, timeout=5)
-			response.raise_for_status()
-		except r.exceptions.HTTPError as errh:
-			self.output.terminalOutput("Http Error: {}".format(errh),style='ALERT')
-			return 0
-		except r.exceptions.ConnectionError as errc:
-			self.output.terminalOutput("Error Connecting: {}".format(errc),style='ALERT')
-			return 0
-		except r.exceptions.Timeout as errt:
-			self.output.terminalOutput("Timeout Error: {}".format(errt),style='ALERT')
-			return 0
-		except r.exceptions.RequestException as err:
-			self.output.terminalOutput("Oops: Something Else {}".format(err),style='ALERT')
-			return 0
-
-		self.output.terminalOutput("Good POST to dweet.io",style='SUCCESS')
-		return 1 
-
-		# TODO occasionally or if the last upload worked then retry anything in storedEvents
+		self.output.uploadEventToDweet(self.BCC, self.empNum, self.opNum, self.eventType, strTime, intTime)
 
 	def storeForLater(self):
 		self.output.terminalOutput("Storing for later",style='INFO')
@@ -322,7 +264,6 @@ class _state:
 		self.timer.clear()
 
 		self.sfx.announceFreshStart()
-
 
 	# TODO consider adding a file handling class and a realtime data handling class so these functions all look cleaner.
 

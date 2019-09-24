@@ -20,11 +20,12 @@ import pygame.mixer as mix # This will handle sound from now on
 
 class _soundController:
 
-	def __init__(self, pwd): # Must include a pwd reference so we can access sound files etc.
+	def __init__(self):
 
 		self.lang = "KH"
 		self.speak = wincl.Dispatch("SAPI.SpVoice") if t2v else None # TODO adjust for different operating systems.
-		self.pwd = pwd
+
+		self.voicePath = os.path.join(os.path.dirname(__file__),'../Voice/')
 
 		mix.init() # Starts the pygame sound mixer
 
@@ -92,7 +93,7 @@ class _soundController:
 		for index, message in enumerate(commands):
 
 			if(self.lang=="KH"):
-				mix.music.load(os.path.join(self.pwd,'../Voice',self.KH_samples[message]))
+				mix.music.load(os.path.join(self.voicePath,self.KH_samples[message]))
 				mix.music.play()
 				#TODO check if there's some way to preload a bunch of samples in a row?
 				if (index+1)!=len(commands): # This command has one coming after it

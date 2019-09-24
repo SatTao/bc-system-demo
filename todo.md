@@ -9,3 +9,6 @@ List of changes and improvements that are TODO for bcc system
 - Implement storeforlater in case of internet connectivity issues
 - Implement scrap and reject updates
 - Move sfx routines to a daemon to avoid delays to data entry
+- Implement settings from config file, e.g. name and stayalive times etc.
+- Reliably handle multi-day operations by checking times and opening new csv files etc.
+- Adjust parse function so that it matches for exact text in commands, and only uses 'contains' etc for variables like empNum
