@@ -13,5 +13,7 @@ List of changes and improvements that are TODO for bcc system
 - Reliably handle multi-day operations by checking times and opening new csv files etc.
 - Adjust parse function so that it matches for exact text in commands, and only uses 'contains' etc for variables like empNum
 
-- for readability and storage, keep each event as an object and provide some utility functions
+- for readability and storage, keep each event as an object and provide some utility functions (Partially done)
 - support scanning to indicate that you're on an hourly card
+
+- Adjust volumes and clarity of voice commands

@@ -81,22 +81,22 @@ class _station:
 				self.sfx.repeatLast()
 				return 1
 
-			if (textInput.find('bgn1')!=-1): # Then we record a start event
+			if (textInput.find('bgn1')!=-1): # Then we record a start1 event
 				self.eventType="start1"
 				self.sfx.announceOK()
 				return 1
 
-			if (textInput.find('fin1')!=-1): # Then we record a start event
+			if (textInput.find('fin1')!=-1): # Then we record a finish1 event
 				self.eventType="finish1"
 				self.sfx.announceOK()
 				return 1
 
-			if (textInput.find('bgn2')!=-1): # Then we record a start event
+			if (textInput.find('bgn2')!=-1): # Then we record a start2 event
 				self.eventType="start2"
 				self.sfx.announceOK()
 				return 1
 
-			if (textInput.find('fin2')!=-1): # Then we record a start event
+			if (textInput.find('fin2')!=-1): # Then we record a finish2 event
 				self.eventType="finish2"
 				self.sfx.announceOK()
 				return 1
@@ -189,8 +189,6 @@ class _station:
 		self.timer.clear()
 
 		self.output.terminalOutput("Last event has been cleared - ready for new event",style='INFO')
-
-		# VOICE FEEDBACK NEEDED
 		
 		return 1
 
@@ -200,7 +198,7 @@ class _station:
 
 		self.output.writeEventToLocalFile(self.BCC, self.empNum, self.opNum, self.eventType, strTime, self.timer.getTiming())
 
-		self.sfx.announceCompleteState()
+		self.sfx.announceCompleteState() # TODO move this somewhere more sensible
 
 		return 1
 
@@ -223,6 +221,8 @@ class _station:
 
 	def catchupUploads(self):
 		# TODO help this class re-attempt failed uploads due to internet connectivity.
+
+		# Think about what mechanism this might use to store and systematically check that things worked (or not)
 		return 1
 
 	def freshStart(self):
@@ -252,8 +252,6 @@ class _event:
 
 		self.clearValues()
 
-		# DO something
-
 	def clearValues(self):
 
 		self.BCC = None
@@ -263,6 +261,8 @@ class _event:
 		self.committed = 0
 
 		self.scrapValue = 0
+
+		# Other variables etc go here.
 
 	def setBCC(self, incoming):
 
