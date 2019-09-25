@@ -139,6 +139,17 @@ class _station:
 
 			return 1
 
+		# Checks for valid scrap input
+
+		if(textInput.startswith('scrp-') and len(textInput)>5 and len(textInput)<9): # Then we have a scrap input to process
+
+			# TODO (after implementation of event class throughout station)
+			# self.event.scrapInput(textInput)
+			# if not self.event.scrapValid():
+			# 	self.sfx.announceInvalidScrap() # Alert the user that scrap is invalid and tell them to do it again (or leave it blank)
+
+			return 1 # Do this either way
+
 		# Checks for valid control commands
 
 		if(textInput.startswith('ctrl-') and len(textInput)>5 and len(textInput)<10): # Then we have a control function to run
@@ -160,6 +171,8 @@ class _station:
 
 	def isComplete(self):
 
+		# TODO pass this through to the event object
+
 		# Check if any field is filled in, and the timer is unstarted - then we should start a timer
 
 		if ((self.BCC!=None or self.opNum!=None or self.empNum!=None or self.eventType!=None) and self.timer.isUnstarted()):
@@ -179,6 +192,8 @@ class _station:
 			return 0
 
 	def clearCurrent(self):
+
+		#TODO pass through to event object here
 
 		self.BCC = None
 		self.opNum = None
@@ -260,9 +275,23 @@ class _event:
 		self.eventType = None
 		self.committed = 0
 
-		self.scrapValue = 0
+		self.scrapValue = '0' # Cheat by using an implicit cast from string to check whether it is valid or not
 
 		# Other variables etc go here.
+
+	def isComplete(self):
+
+		return (self.BCC!=None and self.opNum!=None and self.empNum!=None and self.eventType!=None and self.committed!=0)
+
+	def showEvent(self):
+
+		self.station.output.terminalOutput('Employee {} reports {} for step {} on card {} - committed: {}'.format(self.empNum, self.eventType, self.opNum, self.BCC, self.committed),style='INFO')
+
+	def hasAnything(self):
+
+		# Check whether any BC card fields have been filled in
+
+		return (self.BCC!=None or self.opNum!=None or self.empNum!=None or self.eventType!=None)
 
 	def setBCC(self, incoming):
 
@@ -296,5 +325,49 @@ class _event:
 
 		# This should return the current event as a well-formed dictionary payload suitable for dweet or IS, or another service.
 
-		return {}
+		payload = {
+		"BCC" : self.BCC,
+		"opNum" : self.opNum,
+		"empNum" : self.empNum,
+		"action" : self.eventType
+		# "time" : now,
+		# "interactionTime" : interactionTime # TODO sort this out. Where will interaction timer be controlled from?
+		}
 
+		return payload
+
+	def scrapInput(self, incoming):
+
+		# This function accepts numbers and handles the internal representation of scrap.
+		# Try to parse it as an integer first. If that fails, then check for the text meaning.
+
+		incoming=incoming.split('-')[1] # This is the pure value component
+
+		try:
+
+			temp=int(incoming) # If this is successful then it's reliably an integer
+
+			self.scrapValue=self.scrapValue+incoming # Append as string representation of number
+
+		except:
+
+			if incoming=='pt':
+				self.scrapValue=self.scrapValue+'.'
+
+			if incoming=='clr':
+				self.scrapValue='0'
+
+		return 1
+
+	def scrapValid(self):
+
+		try:
+
+			val = float(self.scrapValue)
+			# TODO Do a sanity check on the value here
+			return True
+
+		except:
+
+			self.scrapValue='0' # Clear it
+			return False
