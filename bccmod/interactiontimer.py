@@ -22,6 +22,8 @@ class _interactionTimer:
 		if (not self.stayAliveDaemon.isAlive()):
 			self.stayAliveDaemon.start()
 
+	# TODO find a way to kill this if possible? Maybe add a killKeepAlive function as a utility in case we want to do such a thing in demo.py
+
 	def start(self):
 		self.startTime=time.time()
 

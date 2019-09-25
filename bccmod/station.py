@@ -17,6 +17,7 @@ import configparser
 from bccmod.interactiontimer import _interactionTimer
 from bccmod.soundcontroller import _soundController
 from bccmod.outputmanager import _outputManager
+from bccmod.event import _event
 
 class _station:
 
@@ -26,12 +27,7 @@ class _station:
 
 	def __init__(self):
 
-		self.BCC = None
-		self.opNum = None
-		self.empNum = None
-		self.eventType = None
-		self.committed = 0
-		self.storedEvents = []
+		# self.storedEvents = []
 
 		self.timer = _interactionTimer()
 		self.sfx = _soundController()
@@ -55,17 +51,17 @@ class _station:
 		# Checks for valid data entry
 
 		if(textInput.startswith('bc') and len(textInput)>2 and len(textInput)<12): # Then we have a bc number we should enter
-			self.BCC = textInput
+			self.event.setBCC(textInput)
 			self.sfx.announceOK()
 			return 1
 
 		if(textInput.startswith('op') and len(textInput)>2 and len(textInput)<5): # Then we have a op number we should enter
-			self.opNum = textInput
-			self.sfx.announceOperationNumber(self.opNum)
+			self.event.setOpNum(textInput)
+			self.sfx.announceOperationNumber(textInput)
 			return 1
 
 		if(textInput.startswith('20') and len(textInput)>8 and len(textInput)<11): # Then we have a employee number we should enter
-			self.empNum = textInput
+			self.event.setEmpNum(textInput)
 			self.sfx.announceOK()
 			return 1
 
@@ -82,36 +78,39 @@ class _station:
 				return 1
 
 			if (textInput.find('bgn1')!=-1): # Then we record a start1 event
-				self.eventType="start1"
+				self.event.setEventType("start1")
 				self.sfx.announceOK()
 				return 1
 
 			if (textInput.find('fin1')!=-1): # Then we record a finish1 event
-				self.eventType="finish1"
+				self.event.setEventType("finish1")
 				self.sfx.announceOK()
 				return 1
 
 			if (textInput.find('bgn2')!=-1): # Then we record a start2 event
-				self.eventType="start2"
+				self.event.setEventType("start2")
 				self.sfx.announceOK()
 				return 1
 
 			if (textInput.find('fin2')!=-1): # Then we record a finish2 event
-				self.eventType="finish2"
+				self.event.setEventType("finish2")
 				self.sfx.announceOK()
 				return 1
 
 			if (textInput.find('ok')!=-1): # Then the user wants to commit data, we should check if it's ok
-				self.committed=1
-				if (not self.isComplete()):
-					self.committed = 0 # Keep us uncommitted if there's not enough data yet
+				self.event.setCommitted(1)
+
+				if (not self.event.isComplete()):
+					# Keep us uncommitted if there's not enough data yet
+					self.event.setCommitted(0)
+					# Get an event payload here and pass it to announce
 					self.sfx.announceMissingInfo(self.BCC, self.empNum, self.opNum, self.eventType)
 				
-				self.showEvent()
+				self.event.showEvent()
 				return 1
 
 			if (textInput.find('clr')!=-1): # The user wants to clear everything
-				self.clearCurrent()
+				self.event.clearValues()
 				self.sfx.announceClearedAll()
 				self.output.terminalOutput('Cleared all at user request', style='ALERT')
 				return 1
@@ -143,10 +142,12 @@ class _station:
 
 		if(textInput.startswith('scrp-') and len(textInput)>5 and len(textInput)<9): # Then we have a scrap input to process
 
-			# TODO (after implementation of event class throughout station)
-			# self.event.scrapInput(textInput)
-			# if not self.event.scrapValid():
-			# 	self.sfx.announceInvalidScrap() # Alert the user that scrap is invalid and tell them to do it again (or leave it blank)
+			self.event.scrapInput(textInput)
+			if not self.event.scrapValid():
+
+				print('scrap cleared because invalid')
+				# This automatically clears the scrap count
+				# self.sfx.announceInvalidScrap() # Alert the user that scrap is invalid and tell them to do it again (or leave it blank)
 
 			return 1 # Do this either way
 
@@ -158,11 +159,12 @@ class _station:
 				self.output.terminalOutput('Exit application', style='ALERT')
 				self.sfx.announceOK()
 				exit()
-				return 1
+				return 1 # But it'll never get here lol
 
 		self.output.terminalOutput('Unrecognised command',style='ALERT')
 
-		# VOICE FEEDBACK NEEDED??
+		# VOICE FEEDBACK NEEDED - yes.
+
 		return 0
 
 	def showEvent(self):
@@ -171,35 +173,11 @@ class _station:
 
 	def isComplete(self):
 
-		# TODO pass this through to the event object
-
-		# Check if any field is filled in, and the timer is unstarted - then we should start a timer
-
-		if ((self.BCC!=None or self.opNum!=None or self.empNum!=None or self.eventType!=None) and self.timer.isUnstarted()):
-			self.timer.start()
-
-		# Now we check if it's complete
-
-		if (self.BCC!=None and self.opNum!=None and self.empNum!=None and self.eventType!=None and self.committed!=0):
-			
-			if (not self.timer.isUnstarted()): # Check we actually have a start time listed.
-				self.timer.stop()
-			else:
-				self.output.terminalOutput("Complete with no timing available",style='ALERT')
-
-			return 1
-		else:
-			return 0
+		return self.event.isComplete()
 
 	def clearCurrent(self):
 
-		#TODO pass through to event object here
-
-		self.BCC = None
-		self.opNum = None
-		self.empNum = None
-		self.eventType = None
-		self.committed = 0
+		self.event.clearValues()
 
 		self.timer.clear()
 
@@ -209,9 +187,9 @@ class _station:
 
 	def writeEventToLocalFile(self):
 
-		strTime = dt.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
+		# Accept payload from event for filewrite func
 
-		self.output.writeEventToLocalFile(self.BCC, self.empNum, self.opNum, self.eventType, strTime, self.timer.getTiming())
+		self.output.writeEventToLocalFile(self.event.getAsPayload())
 
 		self.sfx.announceCompleteState() # TODO move this somewhere more sensible
 
@@ -219,14 +197,15 @@ class _station:
 
 	def uploadEvent(self):
 
-		strTime = dt.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
-		intTime = str(round(self.timer.getTiming()))
+		# Accept payload from event for status funcs
 
-		statusDweet = self.output.uploadEventToDweet(self.BCC, self.empNum, self.opNum, self.eventType, strTime, intTime)
+		statusDweet = self.output.uploadEventToDweet(self.event.getAsPayload())
 
-		statusIS = self.output.uploadEventToInitialState(self.BCC, self.empNum, self.opNum, self.eventType, strTime, intTime)
+		statusIS = self.output.uploadEventToInitialState(self.event.getAsPayload())
 
-		return (statusDweet and statusIS)
+		return (statusDweet and statusIS) # TODO modify since dweet is not as important as IS, nor as an API call to BC will be eventually.
+
+		return 1
 
 	def storeForLater(self):
 		self.output.terminalOutput("Storing for later",style='INFO')
@@ -243,7 +222,7 @@ class _station:
 	def freshStart(self):
 
 		self.timer.clear()
-
+		self.event.clearValues()
 		self.sfx.announceFreshStart()
 
 	def startKeepAlive(self):
@@ -251,123 +230,3 @@ class _station:
 		self.timer.startKeepAlive()
 
    	# End class
-
-
-
-
-
-
-class _event:
-
-	# This class must keep track of all data for an event, and provide some useful functions
-
-	def __init__(self, station):
-
-		self.station = station
-
-		self.clearValues()
-
-	def clearValues(self):
-
-		self.BCC = None
-		self.opNum = None
-		self.empNum = None
-		self.eventType = None
-		self.committed = 0
-
-		self.scrapValue = '0' # Cheat by using an implicit cast from string to check whether it is valid or not
-
-		# Other variables etc go here.
-
-	def isComplete(self):
-
-		return (self.BCC!=None and self.opNum!=None and self.empNum!=None and self.eventType!=None and self.committed!=0)
-
-	def showEvent(self):
-
-		self.station.output.terminalOutput('Employee {} reports {} for step {} on card {} - committed: {}'.format(self.empNum, self.eventType, self.opNum, self.BCC, self.committed),style='INFO')
-
-	def hasAnything(self):
-
-		# Check whether any BC card fields have been filled in
-
-		return (self.BCC!=None or self.opNum!=None or self.empNum!=None or self.eventType!=None)
-
-	def setBCC(self, incoming):
-
-		if (not isinstance(self.BCC, type(None))) and self.BCC!=incoming:
-			self.station.output.terminalOutput('Overwriting BC card number',style="INFO")
-
-		self.BCC=incoming
-
-	def setOpNum(self, incoming):
-
-		if (not isinstance(self.opNum, type(None))) and self.opNum!=incoming:
-			self.station.output.terminalOutput('Overwriting operation number',style="INFO")
-
-		self.opNum=incoming
-
-	def setEmpNum(self, incoming):
-
-		if (not isinstance(self.empNum, type(None))) and self.empNum!=incoming:
-			self.station.output.terminalOutput('Overwriting employee number',style="INFO")
-
-		self.empNum=incoming
-
-	def setEventType(self, incoming):
-
-		if (not isinstance(self.eventType, type(None))) and self.eventType!=incoming:
-			self.station.output.terminalOutput('Overwriting event type',style="INFO")
-
-		self.eventType=incoming
-
-	def getAsPayload(self):
-
-		# This should return the current event as a well-formed dictionary payload suitable for dweet or IS, or another service.
-
-		payload = {
-		"BCC" : self.BCC,
-		"opNum" : self.opNum,
-		"empNum" : self.empNum,
-		"action" : self.eventType
-		# "time" : now,
-		# "interactionTime" : interactionTime # TODO sort this out. Where will interaction timer be controlled from?
-		}
-
-		return payload
-
-	def scrapInput(self, incoming):
-
-		# This function accepts numbers and handles the internal representation of scrap.
-		# Try to parse it as an integer first. If that fails, then check for the text meaning.
-
-		incoming=incoming.split('-')[1] # This is the pure value component
-
-		try:
-
-			temp=int(incoming) # If this is successful then it's reliably an integer
-
-			self.scrapValue=self.scrapValue+incoming # Append as string representation of number
-
-		except:
-
-			if incoming=='pt':
-				self.scrapValue=self.scrapValue+'.'
-
-			if incoming=='clr':
-				self.scrapValue='0'
-
-		return 1
-
-	def scrapValid(self):
-
-		try:
-
-			val = float(self.scrapValue)
-			# TODO Do a sanity check on the value here
-			return True
-
-		except:
-
-			self.scrapValue='0' # Clear it
-			return False

@@ -89,18 +89,18 @@ class _outputManager():
 	def prepLocalFile(self):
 
 		with open(self.outputFilename, "w") as f:
-			f.write(', '.join(["BCC", "EMP", "OP", "EVENT", "TIME", ("PTIME" + '\n')])) # comma separated values and builtin newline
+			f.write(', '.join(["BCC", "EMP", "OP", "EVENT", "TIME", "PTIME", ("SCRAP" + '\n')])) # comma separated values and builtin newline
 
 		return 1
 
-	def writeEventToLocalFile(self, BCC, empNum, opNum, eventType, now, interactionTime):
+	def writeEventToLocalFile(self, payload):
 
 		# To do - think about modifying the file layout to more closely mirror existing BCC reports, so the event type field now dictates position in the row rather than being an entry of itself.
 
 		#TODO - try this and report an error if it doesn't work.
 
 		with open(self.outputFilename, "a") as f:
-			f.write(', '.join([BCC, empNum, opNum, eventType, now, (str(interactionTime) + '\n')])) # comma separated values and builtin newline
+			f.write(', '.join([payload['BCC'], payload['empNum'], payload['opNum'], payload['eventType'], payload['time'], payload['interactionTime'], (payload['scrap'] + '\n')])) # comma separated values and builtin newline
 
 		return 1
 
@@ -111,18 +111,7 @@ class _outputManager():
 		self.dweetThingName = newname
 		self.dweetEndpoint = "https://www.dweet.io/dweet/for/" + newname 
 
-	def uploadEventToDweet(self, BCC, empNum, opNum, eventType, now, interactionTime):
-
-		# Package all data as a POST form
-
-		payload = {
-		"BCC" : BCC,
-		"opNum" : opNum,
-		"empNum" : empNum,
-		"action" : eventType,
-		"time" : now,
-		"interactionTime" : interactionTime
-		}
+	def uploadEventToDweet(self, payload):
 
 		# Post it and check the response, return 0 if bad response or timeout
 		self.terminalOutput("Attempting to POST to Dweet.io")
@@ -149,16 +138,7 @@ class _outputManager():
 
 	# Functions to do with InitialState
 
-	def uploadEventToInitialState(self, BCC, empNum, opNum, eventType, now, interactionTime):
-
-		payload = {
-		"BCC" : BCC,
-		"opNum" : opNum,
-		"empNum" : empNum,
-		"action" : eventType,
-		"time" : now,
-		"interactionTime" : interactionTime
-		}
+	def uploadEventToInitialState(self, payload):
 
 		try:
 			self.InitialStateStream.log_object(payload, key_prefix="")

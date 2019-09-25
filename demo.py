@@ -6,7 +6,7 @@
 
 # imports
 
-from bccmod.statemachine import _station
+from bccmod.station import _station
 
 # MAGIC NUMBERS
 
