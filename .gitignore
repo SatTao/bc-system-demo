@@ -122,13 +122,18 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Excel backup save files
+# Excel and backup save files
 ~$*.xlsx
+*.xlsx
 *.csv
 
-# Secrets folder for .ini files related to APIs and 3rd party services
+# config files
 
-secrets/
+*.ini
+
+# resources folder for original sound files etc
+
+resources/
 
 # Voice files that are irrelevant
 

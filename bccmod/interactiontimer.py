@@ -17,7 +17,7 @@ class _interactionTimer:
 		self.lastInteractionTime=None
 
 		self.lastInputTime=time.time()
-		self.stayAliveCycleTime = 10 # [seconds]
+		self.stayAliveCycleTime = 60 # [seconds]
 
 		self.stayAliveDaemon = threading.Thread(target=self.stayAlive,daemon=True,args=())
 
@@ -60,7 +60,7 @@ class _interactionTimer:
 	def stayAlive(self):
 
 		while True:
-			time.sleep(10)
+			time.sleep(5)
 			if (time.time() - self.lastInputTime > self.stayAliveCycleTime):
 				print("\n~StayAlive~\nScan something: ",end='')
 				self.registerActiveInput()

@@ -165,8 +165,6 @@ class _outputManager():
 
 		return 1
 
-
-
 	# TODO some config parsing stuff, all the naming and file writing etc, and 
 	# for when we are running multi-day it should handle keeping multiple output files organised by day etc. 
 	# CONSIDER implementing an auto-FTP upload for log files or results files on a certain schedule.

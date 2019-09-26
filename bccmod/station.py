@@ -76,7 +76,6 @@ class _station:
 
 		return 1
 
-
 	def parse(self, textInput):
 
 		textInput = textInput.lower()

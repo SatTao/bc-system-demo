@@ -27,5 +27,4 @@ List of changes and improvements that are TODO for bcc system
 
 - How are we going to handle caching? A database? A text file? Dropping multiple xmls in a folder, and deleting them when uploaded?
 - If we do xml caching - implement a barcode to report the quantity of cached events for debugging network drops.
-
-- start preparing for traffic lights - implement a system status flag that any class can access to report problems.
+- shall we build a daemon to poll the local network occasionally - ensuring that we have good knowledge of network status?
