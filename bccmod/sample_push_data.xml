@@ -1,0 +1,17 @@
+<event>
+	<metadata>
+		<station name='PACTICS_tester1' location='building3' version='26092019_a'/>
+		<uploadtime>26/09/2019_13:24:54.324_Z+7</uploadtime>
+	</metadata>
+	<event>
+		<data type=BCC>bc342571689</data>
+		<data type=empNum>2019010203</data>
+		<data type=opNum>op67</data>
+		<data type=eventType>finish1</data>
+		<data type=scrap>4.0</data>
+		<data type=interactionTime>12.0</data>
+		<data type=eventTime>26/09/2019_13:24:52.112_Z+7</data>
+	</event>
+</event>
+
+<!--This represents a single interaction with a bcc station. Time formats can be changed-->
