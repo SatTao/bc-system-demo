@@ -100,28 +100,6 @@ class _event:
 		self.committed = incoming
 		self.eventDataAhoy()
 
-	def eventDataAhoy(self):
-
-		# Start the interaction timer if we are receiving data and it hasn't already been started
-		if self.station.timer.isUnstarted():
-			self.station.timer.start()
-
-	def getAsPayload(self):
-
-		# This should return the current event as a well-formed dictionary payload suitable for dweet or IS, or another service.
-
-		payload = {
-		"BCC" : self.BCC,
-		"opNum" : self.opNum,
-		"empNum" : self.empNum,
-		"eventType" : self.eventType,
-		"time" : self.commitTime,
-		"interactionTime" : self.interactionTime,
-		"scrap" : str(float(self.scrapValue))
-		}
-
-		return payload
-
 	def scrapInput(self, incoming):
 
 		# This function accepts numbers and handles the internal representation of scrap.
@@ -158,3 +136,25 @@ class _event:
 
 			self.scrapValue='0' # Clear it # Either here or in the calling bloack, announce the problem nicely.
 			return False
+
+	def eventDataAhoy(self):
+
+		# Start the interaction timer if we are receiving data and it hasn't already been started
+		if self.station.timer.isUnstarted():
+			self.station.timer.start()
+
+	def getAsPayload(self):
+
+		# This should return the current event as a well-formed dictionary payload suitable for dweet or IS, or another service.
+
+		payload = {
+		"BCC" : self.BCC,
+		"opNum" : self.opNum,
+		"empNum" : self.empNum,
+		"eventType" : self.eventType,
+		"time" : self.commitTime,
+		"interactionTime" : self.interactionTime,
+		"scrap" : str(float(self.scrapValue))
+		}
+
+		return payload

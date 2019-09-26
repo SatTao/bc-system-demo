@@ -22,7 +22,11 @@ with contextlib.redirect_stdout(None):
 
 class _soundController:
 
-	def __init__(self):
+	def __init__(self, station):
+
+		self.station = station
+
+		self.status = "GREEN" # This will be used for stack lights.
 
 		self.lang = "KH"
 		self.speak = wincl.Dispatch("SAPI.SpVoice") if t2v else None # TODO adjust for different operating systems.

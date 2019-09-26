@@ -14,7 +14,11 @@ from ISStreamer import Streamer
 
 class _outputManager():
 
-	def __init__(self):
+	def __init__(self, station):
+
+		self.station = station
+
+		self.status = "GREEN" # This will be used for stack lights.
 
 		# Check ANSI availability for terminal
 
@@ -31,6 +35,7 @@ class _outputManager():
 
 		self.writePath = os.path.join(os.path.dirname(__file__),'../output/')
 		self.configPath = os.path.join(os.path.dirname(__file__),'../secrets/')
+		self.cachePath = os.path.join(os.path.dirname(__file__),'../eventCache/')
 
 		# Set up for local file writing
 
@@ -147,6 +152,19 @@ class _outputManager():
 			return 0 # Do something slightly more intelligent here
 			
 		return 1
+
+	def cacheEvent(self, payload):
+
+		# Called whenever an event is complete
+		# The event is dropped in a local cache folder as an xml file
+		# Later a daemon will scan the cache folder for xml files, and attempt to drop them to a remote folder
+		# If this fails for any reason (e.g. network), the daemon leaves the xml file in the cache folder to try again later.
+		# Network comms failures provoke a yellow status.
+
+		self.station.output.terminalOutput("Caching event locally",style='INFO')
+
+		return 1
+
 
 
 	# TODO some config parsing stuff, all the naming and file writing etc, and 

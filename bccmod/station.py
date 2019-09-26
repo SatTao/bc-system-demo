@@ -28,10 +28,13 @@ class _station:
 	def __init__(self):
 
 		# self.storedEvents = []
+		self.status = "GREEN" # This will be used for stack lights. 
+		self.stackLight = "YELLOW" # When initialising
+		self.updateStackLight()
 
-		self.timer = _interactionTimer()
-		self.sfx = _soundController()
-		self.output = _outputManager()
+		self.timer = _interactionTimer(self)
+		self.sfx = _soundController(self)
+		self.output = _outputManager(self)
 
 		self.event = _event(self)
 
@@ -39,9 +42,40 @@ class _station:
 
 		self.output.terminalOutput("\n\nStation ~{}~ is now active\n\n".format(self.name),style="SUCCESS")
 
+		self.updateStatus(self, "GREEN")
+
 		# TODO - Allow for collecting config info from a specific file location, read it in line by line as now using the parse function. 
 
 		# I think the first version of a dashboard would probably use this and trigger if a station is silent for too long etc. 
+
+	def updateStatus(self, component, status):
+
+		component.status=status
+
+		# Check all stati and collate to inform station status
+
+		stati = [self.status, self.timer.status, self.sfx.status, self.output.status]
+
+		if 'RED' in stati:
+			self.stackLight='RED'
+			self.updateStackLight()
+			return 1
+		elif 'YELLOW' in stati:
+			self.stackLight='YELLOW'
+			self.updateStackLight()
+			return 1
+		else:
+			self.stackLight='GREEN'
+			self.updateStackLight()
+			return 1
+
+	def updateStackLight(self):
+
+		# This will set the stack light colour based on self.stackLight
+		print("Stack Light is now {}".format(self.stackLight))
+
+		return 1
+
 
 	def parse(self, textInput):
 

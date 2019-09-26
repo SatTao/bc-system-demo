@@ -13,11 +13,19 @@ List of changes and improvements that are TODO for bcc system
 - Reliably handle multi-day operations by checking times and opening new csv files etc.
 - Adjust parse function so that it matches for exact text in commands, and only uses 'contains' etc for variables like empNum
 
-- support scanning to indicate that you're on an hourly card
+- support scanning to indicate that you're on an hourly card - Maybe implement a job-code recognition function that appends if detected.
 
 - support encoding the local IP for the bc server, with support for changing it and storing back to the config file if necessary
 
 - work towards running headless tests of the units - need to create and test cron jobs on the system at boot with a screen attached, then run it headless and check that it works ok etc. See browser bookmarks for a couple of appropriate methods, including auto-login.
 
-- Pass in station as an argument to init for each manager class so that they can back reference to use other managers. E.g. sfx can access terminaloutput etc.
+- Prototype an xml data export functionality - this may be the preferred long term method of pushing data. Might look like FTP drop xml to a folder for scheduled collection.
 
+- Implement a boilerplate configfile read/write function with target file, variables, and write functionality - so stations can store parameters long term. A few things to store as config - server IP, secret keys, names and IDs, endpoint/drop-folder info, custom variables, location names, etc.
+
+- Do we need to ensure that the system clock is up to date? Could we cross-reference with an online time source for safety?
+
+- How are we going to handle caching? A database? A text file? Dropping multiple xmls in a folder, and deleting them when uploaded?
+- If we do xml caching - implement a barcode to report the quantity of cached events for debugging network drops.
+
+- start preparing for traffic lights - implement a system status flag that any class can access to report problems.

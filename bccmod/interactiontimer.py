@@ -6,7 +6,11 @@ import threading # Used for stayalive daemon
 
 class _interactionTimer:
 
-	def __init__(self):
+	def __init__(self, station):
+
+		self.station = station
+
+		self.status = "GREEN" # This will be used for stack lights.
 
 		self.startTime=None
 		self.stopTime=None
