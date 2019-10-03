@@ -38,7 +38,7 @@ class _station:
 
 		self.event = _event(self)
 
-		self.name = "PACTICS_demo"
+		self.name = self.output.getConfig('DEFAULT','name')
 
 		self.output.terminalOutput("\n\nStation ~{}~ is now active\n\n".format(self.name),style="SUCCESS")
 
@@ -150,7 +150,7 @@ class _station:
 
 		# Checks for valid parameter changes
 
-		if(textInput.startswith('prm-') and len(textInput)>4 and len(textInput)<10): # Then we have a parameter to consider
+		if(textInput.startswith('lang-') and len(textInput)>5 and len(textInput)<10): # Then we have a lanaguage change
 
 			if (textInput.find('kh')!=-1): # Then we change the language to KH
 				self.sfx.lang="KH"
@@ -165,11 +165,21 @@ class _station:
 		if(textInput.startswith('name-') and len(textInput)>5 and len(textInput)<20): # Then we have a renaming to perform
 
 			self.name = textInput.split('-')[1]
+			self.output.setConfig('DEFAULT','name',self.name)
 			self.output.terminalOutput('New station name is: {}'.format(self.name), style='INFO')
-			self.output.setDweetThingName(self.name)
+			self.output.setDweetThingName(self.name) # Dweet names are automatically updated to match station names for now.
 			self.sfx.announceOK()
 
 			return 1
+
+		if(textInput.startswith('loc-') and len(textInput)>4 and len(textInput)<15): # Then we have a location setting
+
+			self.location = textInput.split('-')[1]
+			self.output.setConfig('DEFAULT','location',self.location)
+			self.output.terminalOutput('New station location is: {}'.format(self.location), style='INFO')
+			self.sfx.announceOK()
+
+			return 1 # Do this either way
 
 		# Checks for valid scrap input
 

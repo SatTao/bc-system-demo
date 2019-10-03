@@ -1,5 +1,5 @@
 # demo.py
-# demonstration/hacky first attempt at new automated BC system input using barcode scanner.
+# demonstration of new automated BC system input using barcode scanner.
 # (c) Leo Jofeh @ bespokh.com July 2019
 
 # Important TODO: add support for config via scanned codes, and persistence of config info in files.

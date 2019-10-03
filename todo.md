@@ -9,7 +9,7 @@ List of changes and improvements that are TODO for bcc system
 - Implement storeforlater in case of internet connectivity issues
 
 - Move sfx routines to a daemon to avoid delays to data entry
-- Implement settings from config file, e.g. name and stayalive times etc.
+
 - Reliably handle multi-day operations by checking times and opening new csv files etc.
 - Adjust parse function so that it matches for exact text in commands, and only uses 'contains' etc for variables like empNum
 
@@ -21,10 +21,13 @@ List of changes and improvements that are TODO for bcc system
 
 - Prototype an xml data export functionality - this may be the preferred long term method of pushing data. Might look like FTP drop xml to a folder for scheduled collection.
 
-- Implement a boilerplate configfile read/write function with target file, variables, and write functionality - so stations can store parameters long term. A few things to store as config - server IP, secret keys, names and IDs, endpoint/drop-folder info, custom variables, location names, etc.
+- A few things to store as config - server IP, secret keys, names and IDs, endpoint/drop-folder info, custom variables, location names, etc.
 
 - Do we need to ensure that the system clock is up to date? Could we cross-reference with an online time source for safety?
 
 - How are we going to handle caching? A database? A text file? Dropping multiple xmls in a folder, and deleting them when uploaded?
 - If we do xml caching - implement a barcode to report the quantity of cached events for debugging network drops.
 - shall we build a daemon to poll the local network occasionally - ensuring that we have good knowledge of network status?
+
+- Build a test function to run ftp file drops to a test server, preferably a local one, but can start with speedtest.tele2.net, using ftplib. 
+

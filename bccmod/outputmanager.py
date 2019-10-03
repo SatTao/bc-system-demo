@@ -9,6 +9,7 @@ import string
 import datetime as dt
 import os
 import random
+import configparser
 import requests as r
 from ISStreamer import Streamer
 
@@ -44,13 +45,13 @@ class _outputManager():
 
 		# Set up for dweet.io broadcasting
 
-		self.setDweetThingName('PACTICS_demo') # This may be changed later
+		self.setDweetThingName(self.getConfig('dweet','thingname')) # This may be changed later
 		self.terminalOutput("Realtime data will be streamed to https://www.dweet.io/follow/{}".format(self.dweetThingName))
 
 		# Set up InitialState broadcasting
 
-		conf = ''.join([self.configPath,"InitialStateConfig.ini"])
-		self.InitialStateStream = Streamer.Streamer(bucket_key="M5LW9T38AJ4T", bucket_name="pacticstester", debug_level=1, ini_file_location=conf)
+		ISSconf = ''.join([self.configPath,"InitialStateConfig.ini"])
+		self.InitialStateStream = Streamer.Streamer(bucket_key="M5LW9T38AJ4T", bucket_name="pacticstester", debug_level=1, ini_file_location=ISSconf)
 
 		self.terminalOutput("Output channels initialised")
 
@@ -74,6 +75,26 @@ class _outputManager():
 			message = self.SUCCESS + text + self.NORM
 			print(message)
 			return
+
+	def getConfig(self,section,parameter):
+
+		config=configparser.ConfigParser()
+		config.read(self.configPath+'stationConfig.ini')
+		try:
+			return config[section][parameter]
+		except:
+			return None
+
+	def setConfig(self,section,parameter,field):
+
+		config=configparser.ConfigParser()
+		config.read(self.configPath+'stationConfig.ini')
+		config[section][parameter]=field
+
+		with open(self.configPath+'stationConfig.ini','w') as configfile:
+			config.write(configfile)
+
+		return 1
 
 	def loggingOutput(self, text):
 
@@ -113,8 +134,10 @@ class _outputManager():
 
 	def setDweetThingName(self,newname):
 
-		self.dweetThingName = newname
-		self.dweetEndpoint = "https://www.dweet.io/dweet/for/" + newname 
+		self.setConfig('dweet','thingname',newname) # Set the new name in the config file, so it is permanent
+
+		self.dweetThingName = self.getConfig('dweet','thingname') # Read it back to ensure that internal and external records are consistent
+		self.dweetEndpoint = "https://www.dweet.io/dweet/for/" + self.dweetThingName # Set up the endpoint based on the new thingname.
 
 	def uploadEventToDweet(self, payload):
 
