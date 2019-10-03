@@ -100,6 +100,38 @@ class _event:
 		self.committed = incoming
 		self.eventDataAhoy()
 
+	def setComboInput(self, incoming):
+		# The standard format for these looks like CMB-BC12745383OP78BGN1 i.e. bc num then op num then action.
+		# This first support will be hacky - we should make this more robust in the future.
+
+		# first let's split off the cmb-
+		incoming=incoming.split('-')[1]
+
+		# Then let's get the action code
+		eventType=incoming[-4:]
+		remaining=incoming[:-4]
+		if eventType=='bgn1':
+			eventType='start1'
+		elif eventType=='fin1':
+			eventType='finish1'
+		elif eventType=='bgn2':
+			eventType='start2'
+		elif eventType=='fin2':
+			eventType='finish2'
+		else: return 0
+		self.setEventType(eventType)
+
+		# Then let's get the op number.
+		ind=remaining.find('op')
+		opnum=remaining[ind:]
+		remaining=remaining[:ind]
+		self.setOpNum(opnum)
+
+		# Then let's get the bc number
+		self.setBCC(remaining)
+		self.eventDataAhoy()
+
+
 	def scrapInput(self, incoming):
 
 		# This function accepts numbers and handles the internal representation of scrap.
@@ -148,8 +180,8 @@ class _event:
 		# This should return the current event as a well-formed dictionary payload suitable for dweet or IS, or another service.
 
 		payload = {
-		"stationName" : self.station.name
-		"stationLocation" : self.station.location
+		"stationName" : self.station.name,
+		"stationLocation" : self.station.location,
 		"BCC" : self.BCC,
 		"opNum" : self.opNum,
 		"empNum" : self.empNum,

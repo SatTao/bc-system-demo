@@ -99,6 +99,14 @@ class _station:
 			self.sfx.announceOK()
 			return 1
 
+		if textInput.startswith('cmb'): # Then we have a new combo code to consider.
+			# The standard format for these looks like CMB-BC12745383OP78BGN1 i.e. bc num then op num then action.
+			# This first support will be hacky - we should make this more robust in the future.
+
+			self.event.setComboInput(textInput)
+			self.sfx.announceOK()
+			return 1
+
 		# Checks for valid actions
 
 		if(textInput.startswith('act-') and len(textInput)>4 and len(textInput)<10): # Then we have an action to consider
@@ -138,7 +146,7 @@ class _station:
 					# Keep us uncommitted if there's not enough data yet
 					self.event.setCommitted(0)
 					# Get an event payload here and pass it to announce
-					self.sfx.announceMissingInfo(self.BCC, self.empNum, self.opNum, self.eventType)
+					self.sfx.announceMissingInfo(self.event.BCC, self.event.empNum, self.event.opNum, self.event.eventType) # TODO change to payload
 				
 				self.event.showEvent()
 				return 1
@@ -247,9 +255,9 @@ class _station:
 
 		statusIS = self.output.uploadEventToInitialState(self.event.getAsPayload())
 
-		return (statusDweet and statusIS) # TODO modify since dweet is not as important as IS, nor as an API call to BC will be eventually.
+		statusBC = self.output.writeToBCC(self.event.getAsPayload())
 
-		return 1
+		return (statusDweet and statusIS and statusBC) # TODO modify since dweet is not as important as IS, nor as an API call to BC will be eventually.
 
 	def storeForLater(self):
 		self.output.terminalOutput("Storing for later",style='INFO')

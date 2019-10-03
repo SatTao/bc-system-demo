@@ -31,3 +31,4 @@ List of changes and improvements that are TODO for bcc system
 
 - Build a test function to run ftp file drops to a test server, preferably a local one, but can start with speedtest.tele2.net, using ftplib. 
 
+- Update date and time formats to match BC requirements (see N's email)

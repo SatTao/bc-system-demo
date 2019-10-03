@@ -12,6 +12,7 @@ import random
 import configparser
 import requests as r
 from ISStreamer import Streamer
+from ftplib import FTP
 
 class _outputManager():
 
@@ -52,6 +53,11 @@ class _outputManager():
 
 		ISSconf = ''.join([self.configPath,"InitialStateConfig.ini"])
 		self.InitialStateStream = Streamer.Streamer(bucket_key="M5LW9T38AJ4T", bucket_name="pacticstester", debug_level=1, ini_file_location=ISSconf)
+
+		# Set up for ftp uploads to local/remote folder (will become bc system endpoint in the future)
+
+		self.ftpserver=self.getConfig('ftp','ftpserver')
+		self.terminalOutput("BC system integration endpoint: {}".format(self.ftpserver))
 
 		self.terminalOutput("Output channels initialised")
 
@@ -129,6 +135,24 @@ class _outputManager():
 			f.write(', '.join([payload['BCC'], payload['empNum'], payload['opNum'], payload['eventType'], payload['time'], payload['interactionTime'], (payload['scrap'] + '\n')])) # comma separated values and builtin newline
 
 		return 1
+
+	# Placeholder function for prototyping FTP functionality for later integration with BCC backend.
+
+	def writeToBCC(self, payload):
+
+		# Only uploads a fake file right now
+
+		try:
+			ftp=FTP(self.ftpserver)
+			ftp.login(user=self.getConfig('ftp','ftpuser'),passwd=self.getConfig('ftp','ftppswd'))
+			ftp.cwd('./upload')
+			ftp.storbinary('STOR sample.txt', open(self.cachePath+'sample_push_data.csv.txt','rb'))
+			ftp.quit()
+			self.terminalOutput('FTP success',style='SUCCESS')
+			return 1
+		except:
+			self.terminalOutput('FTP failure of some kind',style='ALERT')
+			return 0
 
 	# Functions to do with Dweet.io - NB this is a temporary service for debugging
 
