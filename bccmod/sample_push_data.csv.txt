@@ -1,0 +1,2 @@
+stationName, stationLocation, version, uploadTime, eventTime, eventType, bcc, empNum, opNum, scrap, interactionTime
+pactics_demo1, office, 20191003_a, 26/09/2019_13:24:54.324_Z+7, 26/09/2019_13:24:52.112_Z+7, finish1, bc2774957390, 2019010101, op90, 4.0, 12.0

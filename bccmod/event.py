@@ -148,8 +148,8 @@ class _event:
 		# This should return the current event as a well-formed dictionary payload suitable for dweet or IS, or another service.
 
 		payload = {
-		"stationName" : self.station.output.getConfig('DEFAULT','name'),
-		"location" : self.station.output.getConfig('DEFAULT','location'),
+		"stationName" : self.station.name
+		"stationLocation" : self.station.location
 		"BCC" : self.BCC,
 		"opNum" : self.opNum,
 		"empNum" : self.empNum,

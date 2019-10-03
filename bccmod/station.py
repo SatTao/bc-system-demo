@@ -39,6 +39,7 @@ class _station:
 		self.event = _event(self)
 
 		self.name = self.output.getConfig('DEFAULT','name')
+		self.location = self.output.getConfig('DEFAULT','location')
 
 		self.output.terminalOutput("\n\nStation ~{}~ is now active\n\n".format(self.name),style="SUCCESS")
 
