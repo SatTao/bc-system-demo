@@ -12,6 +12,10 @@ import os
 import platform
 import configparser
 
+# pattern matching for input
+
+import re
+
 # Other related modules in bccmod
 
 from bccmod.interactiontimer import _interactionTimer
@@ -33,21 +37,30 @@ class _station:
 		self.updateStackLight()
 
 		self.timer = _interactionTimer(self)
-		self.sfx = _soundController(self)
 		self.output = _outputManager(self)
+		self.sfx = _soundController(self)
 
 		self.event = _event(self)
 
 		self.name = self.output.getConfig('DEFAULT','name')
 		self.location = self.output.getConfig('DEFAULT','location')
 
+		self.recognised={ # regexes which differentiate the recognised codes exactly
+		'bcc' : re.compile(r'^bc\d+$'), # https://pythex.org/?regex=%5Ebc%5Cd%2B%24&test_string=bc365939269%0Abcs%0A5429bc97870%0ABC111%0Abcb5689&ignorecase=0&multiline=1&dotall=0&verbose=0
+		'operation' : re.compile(r'^op\d+$'), # https://pythex.org/?regex=%5Eop%5Cd%2B%24&test_string=op90%0Aopop%0A78o9%0Ao3p4p5o%0A247&ignorecase=1&multiline=1&dotall=0&verbose=0
+		'employee' : re.compile(r'^20\d{2}(0[1-9]|1[0-2])(0[1-9]|1\d)\d+$'), # https://pythex.org/?regex=%5E20%5Cd%7B2%7D(0%5B1-9%5D%7C1%5B0-2%5D)(0%5B1-9%5D%7C1%5Cd)%5Cd%2B%24&test_string=2019010203%0A2010030410%0A2010011209%0A200464531%0A19990203%0Aemp987902u2&ignorecase=1&multiline=1&dotall=0&verbose=0
+		'combo' : re.compile(r'^cmb-(?P<bcc>bc\d+)\|(?P<op>op\d+)\|act-(?P<act>\w+)$'), # https://pythex.org/?regex=%5Ecmb-(%3FP%3Cbcc%3Ebc%5Cd%2B)%5C%7C(%3FP%3Cop%3Eop%5Cd%2B)%5C%7C(%3FP%3Cact%3Eact-%5Cw%2B)&test_string=cmb-bc239587485%7Cop78%7Cact-bgn1&ignorecase=1&multiline=1&dotall=0&verbose=0
+		'actprefix' : re.compile(r'^act-\w+$'), # https://pythex.org/?regex=%5Eact-%5Cw%2B%24&test_string=actact%0Aact-ok%0Aact-35294-%0Aact%0Atca34&ignorecase=1&multiline=1&dotall=0&verbose=0
+		'ctrlprefix' : re.compile(r'^ctrl-\w+$'), # https://pythex.org/?regex=%5Ectrl-%5Cw%2B%24&test_string=ctrl-exit%0Actrlctrl%0Actrl90%0Actrl-act-&ignorecase=1&multiline=1&dotall=0&verbose=0
+		'scrapprefix' : re.compile(r'^scrp-\w+$'),
+		'nameprefix' : re.compile(r'^name-\w+$'),
+		'locationprefix' : re.compile(r'^loc-\w+$'),
+		'langprefix' : re.compile(r'^lang-\w+$'),
+		}
+
 		self.output.terminalOutput("\n\nStation ~{}~ is now active\n\n".format(self.name),style="SUCCESS")
 
 		self.updateStatus(self, "GREEN")
-
-		# TODO - Allow for collecting config info from a specific file location, read it in line by line as now using the parse function. 
-
-		# I think the first version of a dashboard would probably use this and trigger if a station is silent for too long etc. 
 
 	def updateStatus(self, component, status):
 
@@ -82,34 +95,37 @@ class _station:
 		textInput = textInput.lower()
 		self.timer.registerActiveInput() # Let's the timer know that we just recieved input
 
-		# Checks for valid data entry
+		# Checks for valid data entry by matching to a compiled regex 
 
-		if(textInput.startswith('bc') and len(textInput)>2 and len(textInput)<12): # Then we have a bc number we should enter
+		if self.recognised['bcc'].match(textInput): 
 			self.event.setBCC(textInput)
 			self.sfx.announceOK()
 			return 1
 
-		if(textInput.startswith('op') and len(textInput)>2 and len(textInput)<5): # Then we have a op number we should enter
+		if self.recognised['operation'].match(textInput):
 			self.event.setOpNum(textInput)
 			self.sfx.announceOperationNumber(textInput)
 			return 1
 
-		if(textInput.startswith('20') and len(textInput)>8 and len(textInput)<11): # Then we have a employee number we should enter
+		if self.recognised['employee'].match(textInput):
 			self.event.setEmpNum(textInput)
 			self.sfx.announceOK()
 			return 1
 
-		if textInput.startswith('cmb'): # Then we have a new combo code to consider.
-			# The standard format for these looks like CMB-BC12745383OP78BGN1 i.e. bc num then op num then action.
-			# This first support will be hacky - we should make this more robust in the future.
+		if self.recognised['combo'].match(textInput): # Then we have a new combo code to consider. (Change to := in Python3.8+)
 
-			self.event.setComboInput(textInput)
+			match = self.recognised['combo'].match(textInput)
+			self.event.setBCC(match.group('bcc')) # The match object automatically scrapes the relevant data to its groups
+			self.event.setOpNum(match.group('op'))
+			self.event.setEventType(match.group('act'))
+			# We should support announcing the full info here, like "starting operation 80" or "finishing operation 45 for the second time" TODO!
 			self.sfx.announceOK()
+
 			return 1
 
 		# Checks for valid actions
 
-		if(textInput.startswith('act-') and len(textInput)>4 and len(textInput)<10): # Then we have an action to consider
+		if self.recognised['actprefix'].match(textInput): # Then we have an action to consider
 
 			if(textInput.find('tgt')!=-1): # This is the practice target code, for helping people to practice scanning codes quickly
 				self.sfx.announceOK()
@@ -146,7 +162,7 @@ class _station:
 					# Keep us uncommitted if there's not enough data yet
 					self.event.setCommitted(0)
 					# Get an event payload here and pass it to announce
-					self.sfx.announceMissingInfo(self.event.BCC, self.event.empNum, self.event.opNum, self.event.eventType) # TODO change to payload
+					self.sfx.announceMissingInfo(self.event.getAsPayload()) # TODO change to payload
 				
 				self.event.showEvent()
 				return 1
@@ -159,7 +175,7 @@ class _station:
 
 		# Checks for valid parameter changes
 
-		if(textInput.startswith('lang-') and len(textInput)>5 and len(textInput)<10): # Then we have a lanaguage change
+		if self.recognised['langprefix'].match(textInput): # Then we have a lanaguage change
 
 			if (textInput.find('kh')!=-1): # Then we change the language to KH
 				self.sfx.lang="KH"
@@ -171,7 +187,7 @@ class _station:
 				self.sfx.announceOK()
 				return 1
 
-		if(textInput.startswith('name-') and len(textInput)>5 and len(textInput)<20): # Then we have a renaming to perform
+		if self.recognised['nameprefix'].match(textInput): # Then we have a renaming to perform
 
 			self.name = textInput.split('-')[1]
 			self.output.setConfig('DEFAULT','name',self.name)
@@ -181,7 +197,7 @@ class _station:
 
 			return 1
 
-		if(textInput.startswith('loc-') and len(textInput)>4 and len(textInput)<15): # Then we have a location setting
+		if self.recognised['locationprefix'].match(textInput): # Then we have a location setting
 
 			self.location = textInput.split('-')[1]
 			self.output.setConfig('DEFAULT','location',self.location)
@@ -192,7 +208,7 @@ class _station:
 
 		# Checks for valid scrap input
 
-		if(textInput.startswith('scrp-') and len(textInput)>5 and len(textInput)<9): # Then we have a scrap input to process
+		if self.recognised['scrapprefix'].match(textInput): # Then we have a scrap input to process
 
 			self.event.scrapInput(textInput)
 			if not self.event.scrapValid():
@@ -205,7 +221,7 @@ class _station:
 
 		# Checks for valid control commands
 
-		if(textInput.startswith('ctrl-') and len(textInput)>5 and len(textInput)<10): # Then we have a control function to run
+		if self.recognised['ctrlprefix'].match(textInput): # Then we have a control function to run
 
 			if (textInput.find('exit')!=-1): # Then we need to quit the application
 				self.output.terminalOutput('Exit application', style='ALERT')
@@ -218,10 +234,6 @@ class _station:
 		# VOICE FEEDBACK NEEDED - yes.
 
 		return 0
-
-	def showEvent(self):
-
-		self.output.terminalOutput('Employee {} reports {} for step {} on card {} - committed: {}'.format(self.empNum, self.eventType, self.opNum, self.BCC, self.committed),style='INFO')
 
 	def isComplete(self):
 

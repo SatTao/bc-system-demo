@@ -51,7 +51,7 @@ class _outputManager():
 
 		# Set up InitialState broadcasting
 
-		ISSconf = ''.join([self.configPath,"InitialStateConfig.ini"])
+		ISSconf = self.configPath+'stationConfig.ini'
 		self.InitialStateStream = Streamer.Streamer(bucket_key="M5LW9T38AJ4T", bucket_name="pacticstester", debug_level=1, ini_file_location=ISSconf)
 
 		# Set up for ftp uploads to local/remote folder (will become bc system endpoint in the future)
@@ -132,7 +132,7 @@ class _outputManager():
 		#TODO - try this and report an error if it doesn't work.
 
 		with open(self.outputFilename, "a") as f:
-			f.write(', '.join([payload['BCC'], payload['empNum'], payload['opNum'], payload['eventType'], payload['time'], payload['interactionTime'], (payload['scrap'] + '\n')])) # comma separated values and builtin newline
+			f.write(', '.join([payload['BCC'], payload['empNum'], payload['opNum'], payload['eventType'], payload['time'].strftime("%d/%m/%Y-%H:%M:%S"), payload['interactionTime'], (payload['scrap'] + '\n')])) # comma separated values and builtin newline
 
 		return 1
 
@@ -141,6 +141,13 @@ class _outputManager():
 	def writeToBCC(self, payload):
 
 		# Only uploads a fake file right now
+
+		# Need to modify the time to the correct format before posting.
+
+		predt, micro= payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f").split('.') # Which we need to strip to milliseconds (because %f is microseconds)
+		predt="%s.%03d" % (dt, int(micro) / 1000)
+
+		payload['time']=predt
 
 		try:
 			ftp=FTP(self.ftpserver)
@@ -166,6 +173,11 @@ class _outputManager():
 	def uploadEventToDweet(self, payload):
 
 		# Post it and check the response, return 0 if bad response or timeout
+
+		# Need to modify the time to the correct format before posting.
+
+		payload['time']=payload['time'].strftime("%d/%m/%Y-%H:%M:%S")
+
 		self.terminalOutput("Attempting to POST to Dweet.io")
 		try:
 			response = r.post(self.dweetEndpoint,data=payload, timeout=5)
@@ -192,6 +204,10 @@ class _outputManager():
 
 	def uploadEventToInitialState(self, payload):
 
+		# Need to modify the time to the correct format before posting.
+
+		payload['time']=payload['time'].strftime("%d/%m/%Y-%H:%M:%S")
+
 		try:
 			self.InitialStateStream.log_object(payload, key_prefix="")
 			self.InitialStateStream.flush()
@@ -203,7 +219,7 @@ class _outputManager():
 	def cacheEvent(self, payload):
 
 		# Called whenever an event is complete
-		# The event is dropped in a local cache folder as an xml file
+		# The event is dropped in a local cache folder as an xml or csv file
 		# Later a daemon will scan the cache folder for xml files, and attempt to drop them to a remote folder
 		# If this fails for any reason (e.g. network), the daemon leaves the xml file in the cache folder to try again later.
 		# Network comms failures provoke a yellow status.

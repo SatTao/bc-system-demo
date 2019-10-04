@@ -47,7 +47,7 @@ class _event:
 		if complete:
 			self.station.timer.stop()
 			self.interactionTime = str(round(self.station.timer.getTiming()))
-			self.commitTime = dt.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
+			self.commitTime = dt.datetime.now() # return as datetime object and let users do formatting .strftime("%d/%m/%Y-%H:%M:%S")
 
 		return complete
 
@@ -102,7 +102,8 @@ class _event:
 
 	def setComboInput(self, incoming):
 		# The standard format for these looks like CMB-BC12745383OP78BGN1 i.e. bc num then op num then action.
-		# This first support will be hacky - we should make this more robust in the future.
+		# This format will soon change to CMB-BC123456|OP89|ACT-BGN1 (multiple delimiters)
+		# This first support will be hacky - we should make this more robust in the future. TODO make this more robust
 
 		# first let's split off the cmb-
 		incoming=incoming.split('-')[1]
@@ -188,7 +189,7 @@ class _event:
 		"eventType" : self.eventType,
 		"time" : self.commitTime,
 		"interactionTime" : self.interactionTime,
-		"scrap" : str(float(self.scrapValue))
+		"scrap" : str(float(self.scrapValue)) # TODO improve this?
 		}
 
 		return payload

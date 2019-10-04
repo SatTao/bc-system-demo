@@ -33,10 +33,7 @@ class _interactionTimer:
 
 	def isUnstarted(self):
 
-		if self.startTime==None:
-			return 1
-		else:
-			return 0
+		return 1 if self.startTime==None else 0
 
 	def stop(self):
 		self.stopTime=time.time()

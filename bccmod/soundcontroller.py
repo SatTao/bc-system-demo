@@ -28,7 +28,7 @@ class _soundController:
 
 		self.status = "GREEN" # This will be used for stack lights.
 
-		self.lang = "KH"
+		self.lang = self.station.output.getConfig('DEFAULT','lang')
 		self.speak = wincl.Dispatch("SAPI.SpVoice") if t2v else None # TODO adjust for different operating systems.
 
 		self.voicePath = os.path.join(os.path.dirname(__file__),'../Voice/')
@@ -141,25 +141,25 @@ class _soundController:
 
 		self.announce('clearall')
 
-	def announceMissingInfo(self, bccnumber, employeenumber, operationnumber, action):
+	def announceMissingInfo(self, payload): # TODO modify to accept a payload instead of individual numbers
 
 		# Always called when there is something missing
 
 		cmd = ['missing']
 
-		if not bccnumber:
+		if not payload['BCC']:
 			
 			cmd.append('bcc')
 
-		if not employeenumber:
+		if not payload['empNum']:
 			
 			cmd.append('employee')
 
-		if not operationnumber:
+		if not payload['opNum']:
 			
 			cmd.append('operationnumber')
 
-		if not action:
+		if not payload['eventType']:
 
 			cmd.append('startorfinish')
 
@@ -239,6 +239,6 @@ class _soundController:
 
 		else:
 
-			cmd.append(number) # Retrun the number as is for EN speaking purposes
+			cmd.append(number) # Return the number as is for EN speaking purposes
 
 		return cmd
