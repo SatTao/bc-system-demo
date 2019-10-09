@@ -254,6 +254,7 @@ class _station:
 		# Accept payload from event for filewrite func
 
 		self.output.writeEventToLocalFile(self.event.getAsPayload())
+		self.output.writeXML(self.event.getAsPayload())
 
 		self.sfx.announceCompleteState() # TODO move this somewhere more sensible
 

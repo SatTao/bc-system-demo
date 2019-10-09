@@ -13,6 +13,7 @@ import configparser
 import requests as r
 from ISStreamer import Streamer
 from ftplib import FTP
+import xml.etree.ElementTree as ET
 
 class _outputManager():
 
@@ -145,7 +146,7 @@ class _outputManager():
 		# Need to modify the time to the correct format before posting.
 
 		predt, micro= payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f").split('.') # Which we need to strip to milliseconds (because %f is microseconds)
-		predt="%s.%03d" % (dt, int(micro) / 1000)
+		predt="%s.%03d" % (predt, int(micro) / 1000)
 
 		payload['time']=predt
 
@@ -160,6 +161,48 @@ class _outputManager():
 		except:
 			self.terminalOutput('FTP failure of some kind',style='ALERT')
 			return 0
+
+	def writeXML(self,payload):
+
+		# Set up the filename
+
+		tempfilename = ''.join([self.cachePath, dt.datetime.now().strftime("%Y-%m-%d_"), self.createRandomString(12), ".xml"])
+
+		# Create an xml document object for writing to a folder somewhere, bcc will pick it up.
+
+		eventXML=ET.Element("event")
+		metadata=ET.SubElement(eventXML,"metadata")
+		data=ET.SubElement(eventXML,"data")
+
+		# Populate the metadata
+
+		ET.SubElement(metadata,"station").text=self.station.name
+		ET.SubElement(metadata,"location").text=self.station.location
+		ET.SubElement(metadata,"version").text='placeholder-1a'
+		ET.SubElement(metadata,"uploadTime").text='placeholder-time'
+
+		# Populate the data
+
+		ET.SubElement(data,"BCC").text=payload['BCC'].upper() # Put it in uppercase as required
+		ET.SubElement(data,"empNum").text=payload['empNum']
+		ET.SubElement(data,"opNum").text=payload['opNum'][2:] # Just the number, this is hacky right now
+		ET.SubElement(data,"eventType").text=payload['eventType']
+		ET.SubElement(data,"scrap").text=payload['scrap']
+		ET.SubElement(data,"interactionTime").text=payload['interactionTime']
+
+		# Modify the time format
+		predt, micro= payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f").split('.') # Which we need to strip to milliseconds (because %f is microseconds)
+		predt="%s.%03d" % (predt, int(micro) / 1000)
+		ET.SubElement(data,"eventTime").text=predt
+
+		tree=ET.ElementTree(eventXML)
+		try:
+			tree.write(tempfilename, xml_declaration=True, encoding='utf-8')
+		except:
+			# This essentially means that the data is lost.
+			self.terminalOutput("XML write to local folder failed",style='ALERT')
+			return 0
+		return 1
 
 	# Functions to do with Dweet.io - NB this is a temporary service for debugging
 
