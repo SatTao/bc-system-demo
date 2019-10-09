@@ -18,5 +18,5 @@
 	<eventTime>2019-09-26 13:24:54.324</eventTime>
 </event>
 
-<!-- Expected values for eventType are: bgn1 , fin1 , fin1 , fin2 -->
+<!-- Expected values for eventType are: bgn1 , fin1 , bgn2 , fin2 -->
 <!-- these refer to start time 1, finish time 1, etc, as in the existing bcc card format -->
