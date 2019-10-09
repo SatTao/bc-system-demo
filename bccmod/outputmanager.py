@@ -178,8 +178,8 @@ class _outputManager():
 
 		ET.SubElement(metadata,"station").text=self.station.name
 		ET.SubElement(metadata,"location").text=self.station.location
-		ET.SubElement(metadata,"version").text='placeholder-1a'
-		ET.SubElement(metadata,"uploadTime").text='placeholder-time'
+		ET.SubElement(metadata,"version").text=self.station.version
+		ET.SubElement(metadata,"uploadTime").text=dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 		# Populate the data
 

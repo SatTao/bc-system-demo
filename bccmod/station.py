@@ -44,6 +44,7 @@ class _station:
 
 		self.name = self.output.getConfig('DEFAULT','name')
 		self.location = self.output.getConfig('DEFAULT','location')
+		self.version='Apathetic Aunt' # Taken from https://www.michaelfogleman.com/phrases/
 
 		self.recognised={ # regexes which differentiate the recognised codes exactly
 		'bcc' : re.compile(r'^bc\d+$'), # https://pythex.org/?regex=%5Ebc%5Cd%2B%24&test_string=bc365939269%0Abcs%0A5429bc97870%0ABC111%0Abcb5689&ignorecase=0&multiline=1&dotall=0&verbose=0
