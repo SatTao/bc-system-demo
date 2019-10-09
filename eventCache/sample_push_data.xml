@@ -1,18 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This section contains metadata about the station which submitted the event, for debugging -->
+<metadata>
+	<station>PACTICS_tester1</station>
+	<location>building3</location>
+	<version>26092019_a</version>
+	<uploadTime>2019-09-26 13:24:55.188</uploadTime>
+</metadata>
+
+<!-- This section contains the data for a single event -->
 <event>
-	<metadata>
-		<station name='PACTICS_tester1' location='building3' version='26092019_a'/>
-		<uploadtime>26/09/2019_13:24:54.324_Z+7</uploadtime>
-	</metadata>
-	<event>
-		<data type=BCC>bc342571689</data>
-		<data type=empNum>2019010203</data>
-		<data type=opNum>op67</data>
-		<data type=eventType>finish1</data>
-		<data type=scrap>4.0</data>
-		<data type=interactionTime>12.0</data>
-		<data type=eventTime>26/09/2019_13:24:52.112_Z+7</data>
-	</event>
+	<BCC>BC342571689</BCC>
+	<empNum>2019010203</empNum>
+	<opNum>67<opNum>
+	<eventType>fin1</eventType>
+	<scrap>4.0</scrap>
+	<interactionTime>12.0</interactionTime>
+	<eventTime>2019-09-26 13:24:54.324</eventTime>
 </event>
 
-<!--This represents a single interaction with a bcc station. Time formats can be changed-->
-
+<!-- Expected values for eventType are: bgn1 , fin1 , fin1 , fin2 -->
+<!-- these refer to start time 1, finish time 1, etc, as in the existing bcc card format -->

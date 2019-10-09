@@ -112,7 +112,7 @@ class _station:
 			self.sfx.announceOK()
 			return 1
 
-		if self.recognised['combo'].match(textInput): # Then we have a new combo code to consider. (Change to := in Python3.8+)
+		if self.recognised['combo'].match(textInput): # Then we have a new combo code to consider. (Change to := in Python3.8+) TODO change to minimised code
 
 			match = self.recognised['combo'].match(textInput)
 			self.event.setBCC(match.group('bcc')) # The match object automatically scrapes the relevant data to its groups
