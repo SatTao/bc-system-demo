@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- This section contains metadata about the station which submitted the event, for debugging -->
-<metadata>
-	<station>PACTICS_tester1</station>
-	<location>building3</location>
-	<version>26092019_a</version>
-	<uploadTime>2019-09-26 13:24:55.188</uploadTime>
-</metadata>
-
-<!-- This section contains the data for a single event -->
 <event>
-	<BCC>BC342571689</BCC>
-	<empNum>2019010203</empNum>
-	<opNum>67<opNum>
-	<eventType>fin1</eventType>
-	<scrap>4.0</scrap>
-	<interactionTime>12.0</interactionTime>
-	<eventTime>2019-09-26 13:24:54.324</eventTime>
+	<metadata>
+		<station>PACTICS_tester1</station>
+		<location>building3</location>
+		<version>26092019_a</version>
+		<uploadTime>2019-09-26 13:24:55.188</uploadTime>
+	</metadata>
+	<!-- This section contains the data for a single event -->
+	<data>
+		<BCC>BC342571689</BCC>
+		<empNum>2019010203</empNum>
+		<opNum>67</opNum>
+		<eventType>fin1</eventType>
+		<scrap>4.0</scrap>
+		<interactionTime>12.0</interactionTime>
+		<eventTime>2019-09-26 13:24:54.324</eventTime>
+	</data>
 </event>
-
 <!-- Expected values for eventType are: bgn1 , fin1 , bgn2 , fin2 -->
 <!-- these refer to start time 1, finish time 1, etc, as in the existing bcc card format -->
