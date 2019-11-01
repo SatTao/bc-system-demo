@@ -16,6 +16,10 @@ import configparser
 
 import re
 
+# Traffic lights - PiStop - only works on rpi
+
+from gpiozero import TrafficLights # TODO Maybe select exactly what to include here as there's lots of stuff
+
 # Other related modules in bccmod
 
 from bccmod.interactiontimer import _interactionTimer
@@ -34,6 +38,7 @@ class _station:
 		# self.storedEvents = []
 		self.status = "GREEN" # This will be used for stack lights. 
 		self.stackLight = "YELLOW" # When initialising
+		self.stack=TrafficLights(2,3,4) # Set up the hardware forthe traffic lights
 		self.updateStackLight()
 
 		self.timer = _interactionTimer(self)
@@ -87,6 +92,18 @@ class _station:
 	def updateStackLight(self):
 
 		# This will set the stack light colour based on self.stackLight
+
+		self.stack.green.off()
+		self.stack.amber.off()
+		self.stack.red.off()
+
+		if self.stackLight=="GREEN":
+			self.stack.green.on()
+		if self.stackLight=="YELLOW":
+			self.stack.amber.on()
+		if self.stackLight=="RED":
+			self.stack.red.on()
+
 		print("Stack Light is now {}".format(self.stackLight))
 
 		return 1
@@ -265,11 +282,15 @@ class _station:
 
 		# Accept payload from event for status funcs
 
+		self.updateStatus(self, "YELLOW")
+
 		statusDweet = self.output.uploadEventToDweet(self.event.getAsPayload())
 
 		statusIS = self.output.uploadEventToInitialState(self.event.getAsPayload())
 
 		statusBC = self.output.writeToBCC(self.event.getAsPayload())
+
+		self.updateStatus(self, "GREEN")
 
 		return (statusDweet and statusIS and statusBC) # TODO modify since dweet is not as important as IS, nor as an API call to BC will be eventually.
 
