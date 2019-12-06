@@ -11,11 +11,8 @@ List of changes and improvements that are TODO for bcc system
 - Move sfx routines to a daemon to avoid delays to data entry
 
 - Reliably handle multi-day operations by checking times and opening new csv files etc. Is this necessary? Event cache should work fine now.
-- Adjust parse function so that it matches for exact text in commands, and only uses 'contains' etc for variables like empNum
 
 - support scanning to indicate that you're on an hourly card - Maybe implement a job-code recognition function that appends if detected.
-
-- Create a system image with all the cron and power settings, credentials etc pre-set, so that we can flash to a card with no further setup required on the machine.
 
 - Do we need to ensure that the system clock is up to date? Could we cross-reference with an online time source for safety?
 
@@ -29,8 +26,6 @@ List of changes and improvements that are TODO for bcc system
 
 - Implement an uptime daemon to send an uptime counter to InitialState - allows us to trigger alerts on dead stations etc
 
--Certain employee numbers are not parsing successfully: e.g. 201212241 which failed. Origin is match string missing 2+ and 3+ numbers for days.
-
 - Implement a cron job that checks for application heartbeat on the main thread. If the main thread is blocked then it kills the process and restarts it, or reboots (maybe safer).
 
-- combo codes (and all codes actually) should always avoid ambiguous characters on a keyboard dependent on keyboard layout option. e.g. | which may register as ~ on a UK layout. Prefer simple, universal punctuation marks as delimiters always. 
+- Reliability tests - it should robustly deal with loss of network without compromising availability for the user - offloading upload functions to daemons and implementing robust local caching. Improve datetime labels on upload files.

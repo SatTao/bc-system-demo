@@ -61,6 +61,7 @@ class _station:
 		'operation' : re.compile(r'^op\d+$'), # https://pythex.org/?regex=%5Eop%5Cd%2B%24&test_string=op90%0Aopop%0A78o9%0Ao3p4p5o%0A247&ignorecase=1&multiline=1&dotall=0&verbose=0
 		'employee' : re.compile(r'^20\d{2}(0[1-9]|1[0-2])(0[1-9]|1[0-9]|2[1-9]|3[0-1])\d+$'), # https://pythex.org/?regex=%5E20%5Cd%7B2%7D(0%5B1-9%5D%7C1%5B0-2%5D)(0%5B1-9%5D%7C1%5Cd)%5Cd%2B%24&test_string=2019010203%0A2010030410%0A2010011209%0A200464531%0A19990203%0Aemp987902u2&ignorecase=1&multiline=1&dotall=0&verbose=0
 		'combo' : re.compile(r'^cmb-(?P<bcc>bc\d+)\|(?P<op>op\d+)\|act-(?P<act>\w+)$'), # https://pythex.org/?regex=%5Ecmb-(%3FP%3Cbcc%3Ebc%5Cd%2B)%5C%7C(%3FP%3Cop%3Eop%5Cd%2B)%5C%7C(%3FP%3Cact%3Eact-%5Cw%2B)&test_string=cmb-bc239587485%7Cop78%7Cact-bgn1&ignorecase=1&multiline=1&dotall=0&verbose=0
+		'reducedcombo' : re.compile(r'^(?P<bcc>\d+)\.(?P<op>\d+)\.(?P<act>[abcd])$'), # https://pythex.org/?regex=%5Ecmb-(%3FP%3Cbcc%3Ebc%5Cd%2B)%5C%7C(%3FP%3Cop%3Eop%5Cd%2B)%5C%7C(%3FP%3Cact%3Eact-%5Cw%2B)&test_string=cmb-bc239587485%7Cop78%7Cact-bgn1&ignorecase=1&multiline=1&dotall=0&verbose=0
 		'actprefix' : re.compile(r'^act-\w+$'), # https://pythex.org/?regex=%5Eact-%5Cw%2B%24&test_string=actact%0Aact-ok%0Aact-35294-%0Aact%0Atca34&ignorecase=1&multiline=1&dotall=0&verbose=0
 		'ctrlprefix' : re.compile(r'^ctrl-\w+$'), # https://pythex.org/?regex=%5Ectrl-%5Cw%2B%24&test_string=ctrl-exit%0Actrlctrl%0Actrl90%0Actrl-act-&ignorecase=1&multiline=1&dotall=0&verbose=0
 		'scrapprefix' : re.compile(r'^scrp-\w+$'),
@@ -138,12 +139,22 @@ class _station:
 			self.sfx.announceOK()
 			return 1
 
-		if self.recognised['combo'].match(textInput): # Then we have a new combo code to consider. (Change to := in Python3.8+) TODO change to minimised code
+		if self.recognised['reducedcombo'].match(textInput): # Then we have a new combo code to consider. (Change to := in Python3.8+) TODO change to minimised code
 
-			match = self.recognised['combo'].match(textInput)
-			self.event.setBCC(match.group('bcc')) # The match object automatically scrapes the relevant data to its groups
-			self.event.setOpNum(match.group('op'))
-			self.event.setEventType(match.group('act'))
+			match = self.recognised['reducedcombo'].match(textInput)
+			self.event.setBCC('bc'+match.group('bcc')) # The match object automatically scrapes the relevant data to its groups, we need to add the prefixes back in for processing and sending
+			self.event.setOpNum('op'+match.group('op'))
+			# In the reduced combo code version the action is encoded as a,b,c,d which mean bgn1, fin1, bgn2, fin2
+			actionString=match.group('act')
+			if actionString=='a':
+				actionString='bgn1'
+			elif actionString=='b':
+				actionString='fin1'
+			elif actionString=='c':
+				actionString='bgn2'
+			elif actionString=='d':
+				actionString='fin2'
+			self.event.setEventType(actionString)
 			# We should support announcing the full info here, like "starting operation 80" or "finishing operation 45 for the second time" TODO!
 			self.sfx.announceOK()
 
