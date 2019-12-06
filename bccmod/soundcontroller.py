@@ -49,6 +49,8 @@ class _soundController:
 		"operation":"operation_KH.mp3",
 		"ok":"ok_KH.mp3",
 		"problem":"systemproblem_KH.mp3",
+		"start":"start_KH.mp3",
+		"stop":"stop_KH.mp3",
 		"firsttime":"firsttime_KH.mp3",
 		"secondtime":"secondtime_KH.mp3",
 		"easterBarang":"barangSpeakKhmer_KH.mp3",
@@ -185,6 +187,20 @@ class _soundController:
 	def announceCombo(self, payload):
 		self.announce('ok') # TODO implement announcing the real info here, we can confidently expect to have a real bc number, op number and action code at this point
 		# We should support announcing the full info here, like "starting operation 80" or "finishing operation 45 for the second time" TODO!
+		cmd=['operation']
+		n = int(payload['opNum'].split("op")[1])
+		for number in self.numberAsCommand(n):
+			cmd.append(number)
+		if payload['eventType'][0:3]=='bgn':
+			cmd.append('start')
+		elif payload['eventType'][0:3]=='fin':
+			cmd.append('stop')
+		if payload['eventType'][3]=='1':
+			cmd.append('firsttime')
+		elif payload['eventType'][3]=='2':
+			cmd.append('secondtime')
+
+		self.announce(cmd)
 
 	def announceOK(self):
 
