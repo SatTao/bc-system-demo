@@ -100,7 +100,7 @@ class _event:
 		self.committed = incoming
 		self.eventDataAhoy()
 
-	def setComboInput(self, incoming):
+	def setComboInput(self, incoming): # deprecated in favour of atomic write functions in event
 		# The standard format for these looks like CMB-BC12745383OP78BGN1 i.e. bc num then op num then action.
 		# This format will soon change to CMB-BC123456|OP89|ACT-BGN1 (multiple delimiters)
 		# This first support will be hacky - we should make this more robust in the future. TODO make this more robust

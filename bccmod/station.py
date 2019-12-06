@@ -18,7 +18,7 @@ import re
 
 # Traffic lights - PiStop - only works on rpi
 
-from gpiozero import TrafficLights # TODO Maybe select exactly what to include here as there's lots of stuff
+from gpiozero import TrafficLights
 
 # Other related modules in bccmod
 
@@ -38,7 +38,12 @@ class _station:
 		# self.storedEvents = []
 		self.status = "GREEN" # This will be used for stack lights. 
 		self.stackLight = "YELLOW" # When initialising
-		self.stack=TrafficLights(2,3,4) # Set up the hardware forthe traffic lights
+		try:
+			self.stack=TrafficLights(2,3,4) # Set up the hardware forthe traffic lights
+			self.stacklightsAvailable=True
+		except:
+			print("Skipping stacklights - unsupported on this OS")
+			self.stacklightsAvailable=False
 		self.updateStackLight()
 
 		self.timer = _interactionTimer(self)
@@ -54,7 +59,7 @@ class _station:
 		self.recognised={ # regexes which differentiate the recognised codes exactly
 		'bcc' : re.compile(r'^bc\d+$'), # https://pythex.org/?regex=%5Ebc%5Cd%2B%24&test_string=bc365939269%0Abcs%0A5429bc97870%0ABC111%0Abcb5689&ignorecase=0&multiline=1&dotall=0&verbose=0
 		'operation' : re.compile(r'^op\d+$'), # https://pythex.org/?regex=%5Eop%5Cd%2B%24&test_string=op90%0Aopop%0A78o9%0Ao3p4p5o%0A247&ignorecase=1&multiline=1&dotall=0&verbose=0
-		'employee' : re.compile(r'^20\d{2}(0[1-9]|1[0-2])(0[1-9]|1\d)\d+$'), # https://pythex.org/?regex=%5E20%5Cd%7B2%7D(0%5B1-9%5D%7C1%5B0-2%5D)(0%5B1-9%5D%7C1%5Cd)%5Cd%2B%24&test_string=2019010203%0A2010030410%0A2010011209%0A200464531%0A19990203%0Aemp987902u2&ignorecase=1&multiline=1&dotall=0&verbose=0
+		'employee' : re.compile(r'^20\d{2}(0[1-9]|1[0-2])(0[1-9]|1[0-9]|2[1-9]|3[0-1])\d+$'), # https://pythex.org/?regex=%5E20%5Cd%7B2%7D(0%5B1-9%5D%7C1%5B0-2%5D)(0%5B1-9%5D%7C1%5Cd)%5Cd%2B%24&test_string=2019010203%0A2010030410%0A2010011209%0A200464531%0A19990203%0Aemp987902u2&ignorecase=1&multiline=1&dotall=0&verbose=0
 		'combo' : re.compile(r'^cmb-(?P<bcc>bc\d+)\|(?P<op>op\d+)\|act-(?P<act>\w+)$'), # https://pythex.org/?regex=%5Ecmb-(%3FP%3Cbcc%3Ebc%5Cd%2B)%5C%7C(%3FP%3Cop%3Eop%5Cd%2B)%5C%7C(%3FP%3Cact%3Eact-%5Cw%2B)&test_string=cmb-bc239587485%7Cop78%7Cact-bgn1&ignorecase=1&multiline=1&dotall=0&verbose=0
 		'actprefix' : re.compile(r'^act-\w+$'), # https://pythex.org/?regex=%5Eact-%5Cw%2B%24&test_string=actact%0Aact-ok%0Aact-35294-%0Aact%0Atca34&ignorecase=1&multiline=1&dotall=0&verbose=0
 		'ctrlprefix' : re.compile(r'^ctrl-\w+$'), # https://pythex.org/?regex=%5Ectrl-%5Cw%2B%24&test_string=ctrl-exit%0Actrlctrl%0Actrl90%0Actrl-act-&ignorecase=1&multiline=1&dotall=0&verbose=0
@@ -93,20 +98,23 @@ class _station:
 
 		# This will set the stack light colour based on self.stackLight
 
-		self.stack.green.off()
-		self.stack.amber.off()
-		self.stack.red.off()
+		if self.stacklightsAvailable:
 
-		if self.stackLight=="GREEN":
-			self.stack.green.on()
-		if self.stackLight=="YELLOW":
-			self.stack.amber.on()
-		if self.stackLight=="RED":
-			self.stack.red.on()
+			self.stack.green.off()
+			self.stack.amber.off()
+			self.stack.red.off()
 
-		print("Stack Light is now {}".format(self.stackLight))
+			if self.stackLight=="GREEN":
+				self.stack.green.on()
+			if self.stackLight=="YELLOW":
+				self.stack.amber.on()
+			if self.stackLight=="RED":
+				self.stack.red.on()
 
-		return 1
+			print("Stack Light is now {}".format(self.stackLight))
+
+			return 1
+		return 0
 
 	def parse(self, textInput):
 
