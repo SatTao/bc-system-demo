@@ -49,6 +49,11 @@ class _soundController:
 		"operation":"operation_KH.mp3",
 		"ok":"ok_KH.mp3",
 		"problem":"systemproblem_KH.mp3",
+		"firsttime":"firsttime_KH.mp3",
+		"secondtime":"secondtime_KH.mp3",
+		"easterBarang":"barangSpeakKhmer_KH.mp3",
+		"easterDutch":"egg_NL.mp3",
+		"easterKhmer":"thanksReaksmey_KH.mp3",
 		0 : "zero_KH.mp3",
 		1 : "one_KH.mp3",
 		2 : "two_KH.mp3",
@@ -177,6 +182,10 @@ class _soundController:
 
 		self.announce(cmd)
 
+	def announceCombo(self, payload):
+		self.announce('ok') # TODO implement announcing the real info here, we can confidently expect to have a real bc number, op number and action code at this point
+		# We should support announcing the full info here, like "starting operation 80" or "finishing operation 45 for the second time" TODO!
+
 	def announceOK(self):
 
 		self.announce('ok')
@@ -186,6 +195,17 @@ class _soundController:
 		# not currently useful but may be in the future
 
 		self.announce('problem')
+
+	def announceEgg(self, easterString):
+
+		# Three options currently supported: vrijmibo, somleng and songha. Put more here if you want.
+
+		if easterString=='vrijmibo':
+			self.announce('easterDutch')
+		elif easterString=='somleng':
+			self.announce('easterKhmer')
+		elif easterString=='songha':
+			self.announce('easterBarang')
 
 	def numberAsCommand(self, number):
 

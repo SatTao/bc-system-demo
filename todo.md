@@ -29,3 +29,10 @@ List of changes and improvements that are TODO for bcc system
 - Implement a cron job that checks for application heartbeat on the main thread. If the main thread is blocked then it kills the process and restarts it, or reboots (maybe safer).
 
 - Reliability tests - it should robustly deal with loss of network without compromising availability for the user - offloading upload functions to daemons and implementing robust local caching. Improve datetime labels on upload files.
+
+- Build in support for new voice files, noteably:
+-- announcing combo codes
+-- announcing scrap quantities
+-- announcing clearing the scrap quantity deliberately or by accident
+-- easter eggs
+-- anything else?

@@ -31,15 +31,13 @@ class _station:
 
 	pwd = os.path.dirname(__file__) # Gets absolute path to the directory that contains this file, not calling location.
 
-	# TODO add config path and handle config file reading and writing, maybe implement using pickle for simplicity. or using scan codes - neater.
-
 	def __init__(self):
 
 		# self.storedEvents = []
 		self.status = "GREEN" # This will be used for stack lights. 
 		self.stackLight = "YELLOW" # When initialising
 		try:
-			self.stack=TrafficLights(2,3,4) # Set up the hardware forthe traffic lights
+			self.stack=TrafficLights(2,3,4) # Set up the hardware for the traffic lights
 			self.stacklightsAvailable=True
 		except:
 			print("Skipping stacklights - unsupported on this OS")
@@ -60,7 +58,7 @@ class _station:
 		'bcc' : re.compile(r'^bc\d+$'), # https://pythex.org/?regex=%5Ebc%5Cd%2B%24&test_string=bc365939269%0Abcs%0A5429bc97870%0ABC111%0Abcb5689&ignorecase=0&multiline=1&dotall=0&verbose=0
 		'operation' : re.compile(r'^op\d+$'), # https://pythex.org/?regex=%5Eop%5Cd%2B%24&test_string=op90%0Aopop%0A78o9%0Ao3p4p5o%0A247&ignorecase=1&multiline=1&dotall=0&verbose=0
 		'employee' : re.compile(r'^20\d{2}(0[1-9]|1[0-2])(0[1-9]|1[0-9]|2[1-9]|3[0-1])\d+$'), # https://pythex.org/?regex=%5E20%5Cd%7B2%7D(0%5B1-9%5D%7C1%5B0-2%5D)(0%5B1-9%5D%7C1%5Cd)%5Cd%2B%24&test_string=2019010203%0A2010030410%0A2010011209%0A200464531%0A19990203%0Aemp987902u2&ignorecase=1&multiline=1&dotall=0&verbose=0
-		'combo' : re.compile(r'^cmb-(?P<bcc>bc\d+)\|(?P<op>op\d+)\|act-(?P<act>\w+)$'), # https://pythex.org/?regex=%5Ecmb-(%3FP%3Cbcc%3Ebc%5Cd%2B)%5C%7C(%3FP%3Cop%3Eop%5Cd%2B)%5C%7C(%3FP%3Cact%3Eact-%5Cw%2B)&test_string=cmb-bc239587485%7Cop78%7Cact-bgn1&ignorecase=1&multiline=1&dotall=0&verbose=0
+		'combo' : re.compile(r'^cmb-(?P<bcc>bc\d+)\|(?P<op>op\d+)\|act-(?P<act>\w+)$'), # DEPRECATED IN FAVOUR OF REDUCED COMBO CODES
 		'reducedcombo' : re.compile(r'^(?P<bcc>\d+)\.(?P<op>\d+)\.(?P<act>[abcd])$'), # https://pythex.org/?regex=%5Ecmb-(%3FP%3Cbcc%3Ebc%5Cd%2B)%5C%7C(%3FP%3Cop%3Eop%5Cd%2B)%5C%7C(%3FP%3Cact%3Eact-%5Cw%2B)&test_string=cmb-bc239587485%7Cop78%7Cact-bgn1&ignorecase=1&multiline=1&dotall=0&verbose=0
 		'actprefix' : re.compile(r'^act-\w+$'), # https://pythex.org/?regex=%5Eact-%5Cw%2B%24&test_string=actact%0Aact-ok%0Aact-35294-%0Aact%0Atca34&ignorecase=1&multiline=1&dotall=0&verbose=0
 		'ctrlprefix' : re.compile(r'^ctrl-\w+$'), # https://pythex.org/?regex=%5Ectrl-%5Cw%2B%24&test_string=ctrl-exit%0Actrlctrl%0Actrl90%0Actrl-act-&ignorecase=1&multiline=1&dotall=0&verbose=0
@@ -68,6 +66,7 @@ class _station:
 		'nameprefix' : re.compile(r'^name-\w+$'),
 		'locationprefix' : re.compile(r'^loc-\w+$'),
 		'langprefix' : re.compile(r'^lang-\w+$'),
+		'easter': re.compile(r'^egg-(?P<type>\w+)$')
 		}
 
 		self.output.terminalOutput("\n\nStation ~{}~ is now active\n\n".format(self.name),style="SUCCESS")
@@ -155,8 +154,7 @@ class _station:
 			elif actionString=='d':
 				actionString='fin2'
 			self.event.setEventType(actionString)
-			# We should support announcing the full info here, like "starting operation 80" or "finishing operation 45 for the second time" TODO!
-			self.sfx.announceOK()
+			self.sfx.announceCombo(self.event.getAsPayload())
 
 			return 1
 
@@ -199,7 +197,7 @@ class _station:
 					# Keep us uncommitted if there's not enough data yet
 					self.event.setCommitted(0)
 					# Get an event payload here and pass it to announce
-					self.sfx.announceMissingInfo(self.event.getAsPayload()) # TODO change to payload
+					self.sfx.announceMissingInfo(self.event.getAsPayload())
 				
 				self.event.showEvent()
 				return 1
@@ -265,6 +263,12 @@ class _station:
 				self.sfx.announceOK()
 				exit()
 				return 1 # But it'll never get here lol
+
+		if self.recognised['easter'].match(textInput): # Easter eggs go here. Congratulations for reading the code so thoroughly. These trigger voice files in multiple languages
+			match = self.recognised['easter'].match(textInput)
+			easterString=match.group('type')
+			self.sfx.announceEgg(easterString)
+			return 1
 
 		self.output.terminalOutput('Unrecognised command',style='ALERT')
 
