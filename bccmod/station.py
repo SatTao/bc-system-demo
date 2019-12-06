@@ -66,6 +66,7 @@ class _station:
 		'nameprefix' : re.compile(r'^name-\w+$'),
 		'locationprefix' : re.compile(r'^loc-\w+$'),
 		'langprefix' : re.compile(r'^lang-\w+$'),
+		'logging' : re.compile(r'^log-(?P<flag>\d)$'),
 		'easter': re.compile(r'^egg-(?P<type>\w+)$')
 		}
 
@@ -264,6 +265,14 @@ class _station:
 				exit()
 				return 1 # But it'll never get here lol
 
+		if self.recognised['logging'].match(textInput):
+			val = self.recognised['logging'].match(textInput).group('flag')
+			self.output.logging = float(val)
+			self.output.setConfig('DEFAULT', 'logging', val)
+			self.output.terminalOutput('Logging set to: {}'.format(val), style='INFO')
+			self.sfx.announceOK()
+			return 1
+
 		if self.recognised['easter'].match(textInput): # Easter eggs go here. Congratulations for reading the code so thoroughly. These trigger voice files in multiple languages
 			match = self.recognised['easter'].match(textInput)
 			easterString=match.group('type')
@@ -293,6 +302,8 @@ class _station:
 	def writeEventToLocalFile(self):
 
 		# Accept payload from event for filewrite func
+
+		# TODO change this so it writes to a logging file (if the logging flag is found) and also to the event cache as csv (with a lock)
 
 		self.output.writeEventToLocalFile(self.event.getAsPayload())
 		self.output.writeXML(self.event.getAsPayload())

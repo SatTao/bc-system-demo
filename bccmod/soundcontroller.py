@@ -92,7 +92,7 @@ class _soundController:
 
 		print("SFX initialised")
 
-	def announce(self, commands):
+	def announce(self, commands, blockbydefault=False):
 
 		# Take a list of commands and announce them in a row. Keep a record of the last command list in case we need to repeat.
 
@@ -111,7 +111,7 @@ class _soundController:
 					blocking=True # Make sure that commands don't pile up in a row.
 				else:
 					blocking=False
-				if blocking:
+				if blocking or blockbydefault:
 					while mix.music.get_busy() == True:
 					    continue
 			else: 
@@ -140,7 +140,7 @@ class _soundController:
 
 	def announceCompleteState(self):
 
-		self.announce('complete')
+		self.announce('complete', blockbydefault=True)
 
 	def announceClearedAll(self):
 

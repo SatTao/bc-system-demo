@@ -40,6 +40,10 @@ class _outputManager():
 		self.configPath = os.path.join(os.path.dirname(__file__),'../secrets/')
 		self.cachePath = os.path.join(os.path.dirname(__file__),'../eventCache/')
 
+		# Check whether or not we should be logging
+
+		self.logging = float(self.getConfig('DEFAULT', 'logging'))
+
 		# Set up for local file writing
 
 		self.outputFilename = ''.join([self.writePath, dt.datetime.now().strftime("%Y-%m-%d_"), self.createRandomString(), ".csv"])
@@ -119,6 +123,15 @@ class _outputManager():
 		lettersAndDigits = string.ascii_letters + string.digits
 		return ''.join(random.choice(lettersAndDigits) for i in range(length))
 
+	def getNicelyFormattedDatetimeStringNow(self,underscore=True):
+
+		if underscore:
+			predt, micro= dt.datetime.now().strftime("%Y-%m-%d_%H:%M:%S.%f").split('.') # Which we need to strip to milliseconds (because %f is microseconds)
+		else:
+			predt, micro= dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f").split('.')
+
+		return "%s.%03d" % (predt, int(micro) / 1000)
+
 	def prepLocalFile(self):
 
 		with open(self.outputFilename, "w") as f:
@@ -132,8 +145,15 @@ class _outputManager():
 
 		#TODO - try this and report an error if it doesn't work.
 
-		with open(self.outputFilename, "a") as f:
-			f.write(', '.join([payload['BCC'], payload['empNum'], payload['opNum'], payload['eventType'], payload['time'].strftime("%d/%m/%Y-%H:%M:%S"), payload['interactionTime'], (payload['scrap'] + '\n')])) # comma separated values and builtin newline
+		# Write the event to the local log file in /output/ if logging is enabled from the config file
+
+		if self.logging:
+			with open(self.outputFilename, "a") as f:
+				f.write(', '.join([payload['BCC'], payload['empNum'], payload['opNum'], payload['eventType'], payload['time'].strftime("%d/%m/%Y_%H:%M:%S"), payload['interactionTime'], (payload['scrap'] + '\n')])) # comma separated values and builtin newline
+
+		# Now write the event to the event cache in /eventCache/ for the upload daemon to locate. Do this with a lock of some kind.
+
+		# TODO!
 
 		return 1
 

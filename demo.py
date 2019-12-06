@@ -23,11 +23,12 @@ def go():
 			latest = input("Scan something: ") # should always end with a carriage return, and should always HAVE FOCUS otherwise this won't work.
 			station.parse(latest)
 			continue
-		writeOK = station.writeEventToLocalFile()
-		uploadOK = station.uploadEvent()
-		if (not writeOK):
-			station.storeForLater()
-			
+		try:
+			writeOK = station.writeEventToLocalFile()
+			# uploadOK = station.uploadEvent()
+		except:
+			# Then this is a real problem - indicates that we can't write files to the local machine - stop and report a problem. TODO
+			print('SNAFU')
 		station.clearCurrent()
 		continue
 

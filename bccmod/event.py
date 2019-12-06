@@ -100,39 +100,6 @@ class _event:
 		self.committed = incoming
 		self.eventDataAhoy()
 
-	def setComboInput(self, incoming): # deprecated in favour of atomic write functions in event
-		# The standard format for these looks like CMB-BC12745383OP78BGN1 i.e. bc num then op num then action.
-		# This format will soon change to CMB-BC123456|OP89|ACT-BGN1 (multiple delimiters)
-		# This first support will be hacky - we should make this more robust in the future. TODO make this more robust
-
-		# first let's split off the cmb-
-		incoming=incoming.split('-')[1]
-
-		# Then let's get the action code
-		eventType=incoming[-4:]
-		remaining=incoming[:-4]
-		if eventType=='bgn1':
-			eventType='start1'
-		elif eventType=='fin1':
-			eventType='finish1'
-		elif eventType=='bgn2':
-			eventType='start2'
-		elif eventType=='fin2':
-			eventType='finish2'
-		else: return 0
-		self.setEventType(eventType)
-
-		# Then let's get the op number.
-		ind=remaining.find('op')
-		opnum=remaining[ind:]
-		remaining=remaining[:ind]
-		self.setOpNum(opnum)
-
-		# Then let's get the bc number
-		self.setBCC(remaining)
-		self.eventDataAhoy()
-
-
 	def scrapInput(self, incoming):
 
 		# This function accepts numbers and handles the internal representation of scrap.
