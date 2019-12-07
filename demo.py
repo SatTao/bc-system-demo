@@ -25,10 +25,13 @@ def go():
 			continue
 		try:
 			writeOK = station.writeEventToLocalFile()
-			# uploadOK = station.uploadEvent()
 		except:
-			# Then this is a real problem - indicates that we can't write files to the local machine - stop and report a problem. TODO
-			print('SNAFU')
+			print('Caching SNAFU')
+		try:
+			uploadOK = station.uploadEvent()
+		except Exception as e:
+			print('upload SNAFU')
+			print(e)
 		station.clearCurrent()
 		continue
 

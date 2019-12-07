@@ -6,6 +6,7 @@
 
 import platform
 import string
+import time
 import datetime as dt
 import os
 import random
@@ -14,6 +15,7 @@ import requests as r
 from ISStreamer import Streamer
 from ftplib import FTP
 import xml.etree.ElementTree as ET
+import threading
 
 class _outputManager():
 
@@ -65,7 +67,6 @@ class _outputManager():
 		self.terminalOutput("BC system integration endpoint: {}".format(self.ftpserver))
 
 		self.terminalOutput("Output channels initialised")
-
 
 	def terminalOutput(self, text, style='NORM'):
 
@@ -291,8 +292,23 @@ class _outputManager():
 
 		return 1
 
-	# TODO some config parsing stuff, all the naming and file writing etc, and 
-	# for when we are running multi-day it should handle keeping multiple output files organised by day etc. 
-	# CONSIDER implementing an auto-FTP upload for log files or results files on a certain schedule.
-	# Consider using threading to handle remote upload etc and keep track of what is going on, and retries if the upload didn't work.
+	def invokeUploadsDaemon(self):
+
+		# Setup uploads daemon
+
+		self.uploadDaemon = threading.Thread(target=self.handleUploads,daemon=True,args=())
+
+		if (not self.uploadDaemon.isAlive()):
+			print("trying to start the daemon")
+			self.uploadDaemon.start()
+			print("started the daemon)")
+
+	def handleUploads(self):
+
+		print("...uploads daemon does an upload...")
+		time.sleep(5)
+		print("then it gracefully kills itself")
+		return 1
+
+		
 

@@ -308,6 +308,8 @@ class _station:
 		self.output.writeEventToLocalFile(self.event.getAsPayload())
 		self.output.writeXML(self.event.getAsPayload())
 
+		self.output.cacheEvent(self.event.getAsPayload())
+
 		self.sfx.announceCompleteState() # TODO move this somewhere more sensible
 
 		return 1
@@ -318,15 +320,17 @@ class _station:
 
 		self.updateStatus(self, "YELLOW")
 
-		statusDweet = self.output.uploadEventToDweet(self.event.getAsPayload())
+		self.output.invokeUploadsDaemon()
 
-		statusIS = self.output.uploadEventToInitialState(self.event.getAsPayload())
+		#statusDweet = self.output.uploadEventToDweet(self.event.getAsPayload())
 
-		statusBC = self.output.writeToBCC(self.event.getAsPayload())
+		#statusIS = self.output.uploadEventToInitialState(self.event.getAsPayload())
+
+		#statusBC = self.output.writeToBCC(self.event.getAsPayload())
 
 		self.updateStatus(self, "GREEN")
 
-		return (statusDweet and statusIS and statusBC) # TODO modify since dweet is not as important as IS, nor as an API call to BC will be eventually.
+		return 1
 
 	def storeForLater(self):
 		self.output.terminalOutput("Storing for later",style='INFO')
