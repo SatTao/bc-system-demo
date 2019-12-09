@@ -34,3 +34,12 @@ List of changes and improvements that are TODO for bcc system
 -- anything else?
 
 - Test support for multi keyboard input using keyboard module??s
+
+- We will keep a pool of events in memory in a list or similar, using the payload functionality. Access to the list will be controlled by a lock. The main thread only ever requests a lock, then appends a payload to the list, then returns the lock. The daemon upload thread requests a lock, pops a payload, returns the lock, writes the payload to a local file in eventCache, then tries to ftp it, dweet it, IS it, whatever else it needs to do. This way we ensure we don't double book a resource, and the main thread doesn't have to touch any file writes, only the daemon does, and it doesn't overwrite itself.
+
+In order to implement this, we need to:
+
+-- Create a list of payloads in the output manager. 
+-- Create a lock to which the output manager has access.
+-- Create a routine in the output manager which grabs a payload from event, requests a lock on the payload list, appends the payload to the list, releases the lock, and then carries on like normal. The only waiting it should do is if the upload daemon is using the payload list (milliseconds). 
+-- Create an upload daemon with a few cyclical tasks, and a delay time in between. It wakes up, requests a lock on the payload list, waits til it gets it, checks the size of the list, if the size is non-zero, then it pops the first item (FIFO), returns the lock, and then uses the popped payload to write a file to an event cache, do an ftp upload, dweet, and Initial State, all quietly. Then it goes back to sleep again for a bit before trying again. The average frequency of this should be sufficient to handle all the data coming in. In the case that the ftp fails, then it gracefully skips that and leaves the file in eventCache, and tries again on the next cycle. This way we never miss an ftp upload, but it doesn't matter if dweet or IS fail occasionally. 
