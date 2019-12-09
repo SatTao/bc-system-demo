@@ -299,16 +299,15 @@ class _station:
 		
 		return 1
 
-	def writeEventToLocalFile(self):
+	def handleCompleteEvent(self):
 
-		# Accept payload from event for filewrite func
+		self.updateStatus(self, "YELLOW")
 
-		# TODO change this so it writes to a logging file (if the logging flag is found) and also to the event cache as csv (with a lock)
+		# Push this event to the output manager for storage and handling
 
-		self.output.writeEventToLocalFile(self.event.getAsPayload())
-		self.output.writeXML(self.event.getAsPayload())
+		self.output.pushEvent(self.event.getAsPayload())
 
-		self.output.cacheEvent(self.event.getAsPayload())
+		self.updateStatus(self, "GREEN")
 
 		self.sfx.announceCompleteState() # TODO move this somewhere more sensible
 
@@ -318,15 +317,7 @@ class _station:
 
 		# Accept payload from event for status funcs
 
-		self.updateStatus(self, "YELLOW")
-
 		self.output.invokeUploadsDaemon()
-
-		#statusDweet = self.output.uploadEventToDweet(self.event.getAsPayload())
-
-		#statusIS = self.output.uploadEventToInitialState(self.event.getAsPayload())
-
-		#statusBC = self.output.writeToBCC(self.event.getAsPayload())
 
 		self.updateStatus(self, "GREEN")
 

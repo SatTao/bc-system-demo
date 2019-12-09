@@ -24,14 +24,9 @@ def go():
 			station.parse(latest)
 			continue
 		try:
-			writeOK = station.writeEventToLocalFile()
+			writeOK = station.handleCompleteEvent()
 		except:
-			print('Caching SNAFU')
-		try:
-			uploadOK = station.uploadEvent()
-		except Exception as e:
-			print('upload SNAFU')
-			print(e)
+			station.output.terminalOutput('SNAFU - failed to push event to payload list (serious problem)',style='ALERT')
 		station.clearCurrent()
 		continue
 

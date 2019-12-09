@@ -51,6 +51,13 @@ class _outputManager():
 		self.outputFilename = ''.join([self.writePath, dt.datetime.now().strftime("%Y-%m-%d_"), self.createRandomString(), ".csv"])
 		self.prepLocalFile()
 
+		# Setup uploads daemon
+
+		self.uploadDaemon = threading.Thread(target=self.handleUploads,daemon=True,args=())
+		self.payloadListLock=threading.Lock() # Ensure safe access to the following payload list
+		self.payloadList = []
+		# Now invoke the payloads daemon.
+
 		# Set up for dweet.io broadcasting
 
 		self.setDweetThingName(self.getConfig('dweet','thingname')) # This may be changed later
@@ -140,7 +147,7 @@ class _outputManager():
 
 		return 1
 
-	def writeEventToLocalFile(self, payload):
+	def pushEvent(self, payload):
 
 		# To do - think about modifying the file layout to more closely mirror existing BCC reports, so the event type field now dictates position in the row rather than being an entry of itself.
 
@@ -152,9 +159,12 @@ class _outputManager():
 			with open(self.outputFilename, "a") as f:
 				f.write(', '.join([payload['BCC'], payload['empNum'], payload['opNum'], payload['eventType'], payload['time'].strftime("%d/%m/%Y_%H:%M:%S"), payload['interactionTime'], (payload['scrap'] + '\n')])) # comma separated values and builtin newline
 
-		# Now write the event to the event cache in /eventCache/ for the upload daemon to locate. Do this with a lock of some kind.
+		# Now append the payload to the payload list using a lock, where the upload daemon will find it later.
 
-		# TODO!
+		with self.payloadListLock:
+			self.payloadList.append(payload)
+
+		# With this done, the data is safely on the payload list, and the upload daemon will handle everything else from here.
 
 		return 1
 
@@ -292,23 +302,20 @@ class _outputManager():
 
 		return 1
 
+	# Upload daemon stuff
+
 	def invokeUploadsDaemon(self):
 
-		# Setup uploads daemon
-
-		self.uploadDaemon = threading.Thread(target=self.handleUploads,daemon=True,args=())
-
 		if (not self.uploadDaemon.isAlive()):
-			print("trying to start the daemon")
 			self.uploadDaemon.start()
-			print("started the daemon)")
 
 	def handleUploads(self):
 
-		print("...uploads daemon does an upload...")
-		time.sleep(5)
-		print("then it gracefully kills itself")
-		return 1
+		self.terminalOutput("Upload Daemon is alive",style='INFO')
+		while True:
+			time.sleep(5)
+			# Do the upload sequence etc here.
+		return 1 # It is unlikely that this will be killed while it is doing something but losing data very occasionally is ok.
 
 		
 
