@@ -111,12 +111,14 @@ class _event:
 		try:
 
 			temp=int(incoming) # If this is successful then it's reliably an integer
+			self.station.sfx.announce(self.station.sfx.numberAsCommand(temp))
 
 			self.scrapValue=self.scrapValue+incoming # Append as string representation of number
 
 		except:
 
 			if incoming=='pt':
+				self.station.sfx.announce('point')
 				self.scrapValue=self.scrapValue+'.'
 
 			if incoming=='clr':
@@ -134,7 +136,7 @@ class _event:
 
 		except:
 
-			self.scrapValue='0' # Clear it # Either here or in the calling bloack, announce the problem nicely.
+			self.scrapValue='0' # Clear it # Either here or in the calling block, announce the problem nicely.
 			return False
 
 	def eventDataAhoy(self):

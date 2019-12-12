@@ -14,7 +14,6 @@ import configparser
 import requests as r
 from ISStreamer import Streamer
 from ftplib import FTP
-import xml.etree.ElementTree as ET
 import threading
 
 class _outputManager():
@@ -36,6 +35,10 @@ class _outputManager():
 		self.INFO = '\033[1;34;40m' # Bold blue text on black background
 		self.SUCCESS = '\033[1;32;40m' # Bold green text on black background
 
+		# CSV header string format
+
+		self.CSVHeader = ','.join(["BCC", "EMP", "OP", "EVENT", "TIME", "PTIME", ("SCRAP" + '\n')])
+
 		# Get paths to vital folders
 
 		self.writePath = os.path.join(os.path.dirname(__file__),'../output/')
@@ -49,14 +52,18 @@ class _outputManager():
 		# Set up for local file writing
 
 		self.outputFilename = ''.join([self.writePath, dt.datetime.now().strftime("%Y-%m-%d_"), self.createRandomString(), ".csv"])
-		self.prepLocalFile()
+		self.prepLocalFile(self.outputFilename)
 
 		# Setup uploads daemon
 
 		self.uploadDaemon = threading.Thread(target=self.handleUploads,daemon=True,args=())
+		self.uploadsDaemonCycleTime = 15 # It runs every 15 seconds.
 		self.payloadListLock=threading.Lock() # Ensure safe access to the following payload list
 		self.payloadList = []
-		# Now invoke the payloads daemon.
+
+		# Now invoke the payloads daemon (which runs handleUploads) forever
+
+		self.invokeUploadsDaemon()
 
 		# Set up for dweet.io broadcasting
 
@@ -115,14 +122,6 @@ class _outputManager():
 
 		return 1
 
-	def loggingOutput(self, text):
-
-		return
-
-	def postingOutput(self, otherfields):
-
-		return
-
 	# Functions to do with local file handling
 
 	def createRandomString(self,length=6):
@@ -140,10 +139,10 @@ class _outputManager():
 
 		return "%s.%03d" % (predt, int(micro) / 1000)
 
-	def prepLocalFile(self):
+	def prepLocalFile(self, filename):
 
-		with open(self.outputFilename, "w") as f:
-			f.write(', '.join(["BCC", "EMP", "OP", "EVENT", "TIME", "PTIME", ("SCRAP" + '\n')])) # comma separated values and builtin newline
+		with open(filename, "w") as f:
+			f.write(self.CSVHeader)
 
 		return 1
 
@@ -167,75 +166,8 @@ class _outputManager():
 		# With this done, the data is safely on the payload list, and the upload daemon will handle everything else from here.
 
 		return 1
-
-	# Placeholder function for prototyping FTP functionality for later integration with BCC backend.
-
-	def writeToBCC(self, payload):
-
-		# Only uploads a fake file right now
-
-		# Need to modify the time to the correct format before posting.
-
-		predt, micro= payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f").split('.') # Which we need to strip to milliseconds (because %f is microseconds)
-		predt="%s.%03d" % (predt, int(micro) / 1000)
-
-		payload['time']=predt
-
-		try:
-			ftp=FTP(self.ftpserver)
-			ftp.login(user=self.getConfig('ftp','ftpuser'),passwd=self.getConfig('ftp','ftppswd'))
-			ftp.cwd('./upload')
-			ftp.storbinary('STOR sample.txt', open(self.cachePath+'sample_push_data.csv.txt','rb'))
-			ftp.quit()
-			self.terminalOutput('FTP success',style='SUCCESS')
-			return 1
-		except:
-			self.terminalOutput('FTP failure of some kind',style='ALERT')
-			return 0
-
-	def writeXML(self,payload):
-
-		# Set up the filename
-
-		tempfilename = ''.join([self.cachePath, dt.datetime.now().strftime("%Y-%m-%d_"), self.createRandomString(12), ".xml"])
-
-		# Create an xml document object for writing to a folder somewhere, bcc will pick it up.
-
-		eventXML=ET.Element("event")
-		metadata=ET.SubElement(eventXML,"metadata")
-		data=ET.SubElement(eventXML,"data")
-
-		# Populate the metadata
-
-		ET.SubElement(metadata,"station").text=self.station.name
-		ET.SubElement(metadata,"location").text=self.station.location
-		ET.SubElement(metadata,"version").text=self.station.version
-		ET.SubElement(metadata,"uploadTime").text=dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-		# Populate the data
-
-		ET.SubElement(data,"BCC").text=payload['BCC'].upper() # Put it in uppercase as required
-		ET.SubElement(data,"empNum").text=payload['empNum']
-		ET.SubElement(data,"opNum").text=payload['opNum'][2:] # Just the number, this is hacky right now
-		ET.SubElement(data,"eventType").text=payload['eventType']
-		ET.SubElement(data,"scrap").text=payload['scrap']
-		ET.SubElement(data,"interactionTime").text=payload['interactionTime']
-
-		# Modify the time format
-		predt, micro= payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f").split('.') # Which we need to strip to milliseconds (because %f is microseconds)
-		predt="%s.%03d" % (predt, int(micro) / 1000)
-		ET.SubElement(data,"eventTime").text=predt
-
-		tree=ET.ElementTree(eventXML)
-		try:
-			tree.write(tempfilename, xml_declaration=True, encoding='utf-8')
-		except:
-			# This essentially means that the data is lost.
-			self.terminalOutput("XML write to local folder failed",style='ALERT')
-			return 0
-		return 1
-
-	# Functions to do with Dweet.io - NB this is a temporary service for debugging
+	
+	# Dweet config
 
 	def setDweetThingName(self,newname):
 
@@ -243,36 +175,6 @@ class _outputManager():
 
 		self.dweetThingName = self.getConfig('dweet','thingname') # Read it back to ensure that internal and external records are consistent
 		self.dweetEndpoint = "https://www.dweet.io/dweet/for/" + self.dweetThingName # Set up the endpoint based on the new thingname.
-
-	def uploadEventToDweet(self, payload):
-
-		# Post it and check the response, return 0 if bad response or timeout
-
-		# Need to modify the time to the correct format before posting.
-
-		payload['time']=payload['time'].strftime("%d/%m/%Y-%H:%M:%S")
-
-		self.terminalOutput("Attempting to POST to Dweet.io")
-		try:
-			response = r.post(self.dweetEndpoint,data=payload, timeout=5)
-			response.raise_for_status()
-		except r.exceptions.HTTPError as errh:
-			self.terminalOutput("Http Error: {}".format(errh),style='ALERT')
-			return 0
-		except r.exceptions.ConnectionError as errc:
-			self.terminalOutput("Error Connecting: {}".format(errc),style='ALERT')
-			return 0
-		except r.exceptions.Timeout as errt:
-			self.terminalOutput("Timeout Error: {}".format(errt),style='ALERT')
-			return 0
-		except r.exceptions.RequestException as err:
-			self.terminalOutput("Oops: Something Else {}".format(err),style='ALERT')
-			return 0
-
-		self.terminalOutput("Good POST to Dweet.io",style='SUCCESS')
-		return 1 
-
-		# TODO occasionally or if the last upload worked then retry anything in storedEvents
 
 	# Functions to do with InitialState
 
@@ -290,13 +192,23 @@ class _outputManager():
 			
 		return 1
 
-	def cacheEvent(self, payload):
+	def writeToBCC(self, filename):
 
-		# Called whenever an event is complete
-		# The event is dropped in a local cache folder as an xml or csv file
-		# Later a daemon will scan the cache folder for xml files, and attempt to drop them to a remote folder
-		# If this fails for any reason (e.g. network), the daemon leaves the xml file in the cache folder to try again later.
-		# Network comms failures provoke a yellow status.
+		# Only uploads a fake file right now
+
+		try:
+			ftp=FTP(self.ftpserver)
+			ftp.login(user=self.getConfig('ftp','ftpuser'),passwd=self.getConfig('ftp','ftppswd'))
+			ftp.cwd('./upload')
+			ftp.storbinary('STOR BCC.csv', open(self.cachePath+filename,'rb'))
+			ftp.quit()
+			self.terminalOutput('FTP success',style='SUCCESS')
+			return 1
+		except:
+			self.terminalOutput('FTP failure of some kind',style='ALERT')
+			return 0
+
+	def cacheEvent(self, payload):
 
 		self.station.output.terminalOutput("Caching event locally",style='INFO')
 
@@ -309,13 +221,84 @@ class _outputManager():
 		if (not self.uploadDaemon.isAlive()):
 			self.uploadDaemon.start()
 
+	def getTempFileNameByPayload(self, payload):
+
+		return payload['BCC']+'_'+'FAKEDATE'+'_'+'FAKETIME'+'_'+self.createRandomString(6)+'.csv.'
+
+	def writeEventFileToCache(self, payload):
+
+		# Create the tempFilename, and get the path to the eventCache folder
+		tempfilename = self.cachePath + self.getTempFileNameByPayload(payload)
+
+		fileWriteOK=0
+		tries=3
+		while not fileWriteOK and tries:
+			try:
+				with open(tempfilename, "w") as f:
+
+					f.write(self.CSVHeader)
+					f.write(', '.join([payload['BCC'], payload['empNum'], payload['opNum'], payload['eventType'], self.getNicelyFormattedDatetimeStringNow(payload['time']), payload['interactionTime'], (payload['scrap'] + '\n')]))
+
+				fileWriteOK=1
+			except:
+				self.terminalOutput("File write failed once", style='ALERT')
+				tries -=1
+
+		return 1
+
 	def handleUploads(self):
 
-		self.terminalOutput("Upload Daemon is alive",style='INFO')
+		self.terminalOutput("Uploads Daemon is alive",style='INFO')
+
 		while True:
-			time.sleep(5)
-			# Do the upload sequence etc here.
+			time.sleep(self.uploadsDaemonCycleTime)
+
+			# We just try to handle a single event per cycle.
+			# Using the lock, try to pop an event off the payloadList (if there's anything on it). Release the lock
+
+			thisPayload={}
+			thisPayloadListLength=0
+
+			with self.payloadListLock:
+
+				thisPayloadListLength = len(self.payloadList)
+				if thisPayloadListLength:
+
+					thisPayload=self.payloadList.pop(0)
+
+			if thisPayloadListLength:
+				# Use the payload that we popped and write its info to a csv file in the eventCache
+
+				self.writeEventFileToCache(thisPayload)
+
+				# Use the payload object to attempt an upload to InitialState (forget dweet now) (it doesn't matter if it fails)
+
+				self.uploadEventToInitialState(thisPayload) # Don't do it quietly because it eats stdout which affects input in the main loop.
+
+			# Examine the eventCache folder and locate all files. Choose the first csv file in alphabetic order.
+
+			cachedEvents = list(filter(lambda x: x.endswith('.csv'), os.listdir(self.cachePath))) # (don't .sort() on this because it retruns none for an empty list)
+
+			if len(cachedEvents):
+
+				self.terminalOutput('Attempting to FTP put an event file, cache contains {} .csv files'.format(len(cachedEvents)),style='INFO')
+
+				uploadTargetFilename = cachedEvents[0]
+
+				# Attempt to ftp put this file in the remote directory. If it works, then delete it from the event cache.
+
+				if self.writeToBCC(uploadTargetFilename):
+					try:
+						os.remove(os.path.join(self.cachePath,uploadTargetFilename))
+					except OSError:
+						self.terminalOutput("Temp file could not be deleted, moving on", style='ALERT')
+
+				# If it doesn't work, then leave it there and we'll try again later (probably a network issue), but give me an error message
+			else:
+				self.terminalOutput('No files found to upload from event cache',style='INFO')
+
+			# At this stage we have popped an event, written it to cache, and tried to upload 
+
+			continue
+
 		return 1 # It is unlikely that this will be killed while it is doing something but losing data very occasionally is ok.
-
-		
-

@@ -52,7 +52,7 @@ class _station:
 
 		self.name = self.output.getConfig('DEFAULT','name')
 		self.location = self.output.getConfig('DEFAULT','location')
-		self.version='Apathetic Aunt' # Taken from https://www.michaelfogleman.com/phrases/
+		self.version='Boring Bastard' # Taken from https://www.michaelfogleman.com/phrases/
 
 		self.recognised={ # regexes which differentiate the recognised codes exactly
 		'bcc' : re.compile(r'^bc\d+$'), # https://pythex.org/?regex=%5Ebc%5Cd%2B%24&test_string=bc365939269%0Abcs%0A5429bc97870%0ABC111%0Abcb5689&ignorecase=0&multiline=1&dotall=0&verbose=0
@@ -251,7 +251,7 @@ class _station:
 
 				print('scrap cleared because invalid')
 				# This automatically clears the scrap count
-				# self.sfx.announceInvalidScrap() # Alert the user that scrap is invalid and tell them to do it again (or leave it blank)
+				# TODO self.sfx.announceInvalidScrap() # Alert the user that scrap is invalid and tell them to do it again (or leave it blank)
 
 			return 1 # Do this either way
 
@@ -264,6 +264,12 @@ class _station:
 				self.sfx.announceOK()
 				exit()
 				return 1 # But it'll never get here lol
+
+			if (textInput.find('cache')!=-1): # Then we need to report the number of files waiting in cache. TODO make this cleaner, although it works.
+				n=len(list(filter(lambda x: x.endswith('.csv'), os.listdir(self.output.cachePath))))
+				self.output.terminalOutput('Number of files in cache: {}'.format(n), style='ALERT')
+				self.sfx.announce(self.sfx.numberAsCommand(n))
+				return 1
 
 		if self.recognised['logging'].match(textInput):
 			val = self.recognised['logging'].match(textInput).group('flag')

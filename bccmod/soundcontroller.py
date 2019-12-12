@@ -56,6 +56,7 @@ class _soundController:
 		"easterBarang":"barangSpeakKhmer_KH.mp3",
 		"easterDutch":"egg_NL.mp3",
 		"easterKhmer":"thanksReaksmey_KH.mp3",
+		"point":"point_KH.mp3",
 		0 : "zero_KH.mp3",
 		1 : "one_KH.mp3",
 		2 : "two_KH.mp3",
