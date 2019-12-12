@@ -223,7 +223,7 @@ class _outputManager():
 
 	def getTempFileNameByPayload(self, payload):
 
-		return payload['BCC']+'_'+'FAKEDATE'+'_'+'FAKETIME'+'_'+self.createRandomString(6)+'.csv.'
+		return payload['BCC']+'_'+'FAKEDATE'+'_'+'FAKETIME'+'_'+self.createRandomString(6)+'.csv'
 
 	def writeEventFileToCache(self, payload):
 
