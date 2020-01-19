@@ -56,6 +56,9 @@ class _soundController:
 		"easterBarang":"barangSpeakKhmer_KH.mp3",
 		"easterDutch":"egg_NL.mp3",
 		"easterKhmer":"thanksReaksmey_KH.mp3",
+		"imperialmarch":"imperialmarch.mp3",
+		"peaceout":"yeahx3.mp3", # TODO place these mp3s
+		"kdengkdeng":"kdeng.mp3", # TODO place these mp3s
 		"point":"point_KH.mp3",
 		0 : "zero_KH.mp3",
 		1 : "one_KH.mp3",
@@ -109,7 +112,6 @@ class _soundController:
 			if(self.lang=="KH"):
 				mix.music.load(os.path.join(self.voicePath,self.KH_samples[message]))
 				mix.music.play()
-				#TODO check if there's some way to preload a bunch of samples in a row?
 				if (index+1)!=len(commands): # This command has one coming after it
 					blocking=True # Make sure that commands don't pile up in a row.
 				else:
@@ -222,6 +224,12 @@ class _soundController:
 			self.announce('easterKhmer')
 		elif easterString=='songha':
 			self.announce('easterBarang')
+		elif easterString=='piet':
+			self.announce('imperialmarch')
+		elif easterString=='yeahx3':
+			self.announce('peaceout') # TODO this won't work until an mp3 file is available
+		elif easterString=='perspoor':
+			self.announce('kdengkdeng') # TODO this won't work until an mp3 file is available
 
 	def numberAsCommand(self, number):
 

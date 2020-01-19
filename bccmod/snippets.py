@@ -133,3 +133,20 @@ def uploadEventToDweet(self, payload):
 			self.terminalOutput("XML write to local folder failed",style='ALERT')
 			return 0
 		return 1
+
+
+
+
+
+
+
+
+# Thinking about the file copy to remote storage functionality.
+
+import shutil
+
+shutil.copyfile('source.csv','destination.csv') # There are some other funcs available too.
+
+# The source file will be the filename identified as first in the search for .csv's
+# The destination will be the self.remotePath /inbound/original filename
+# And we should try, except, to make sure that if anything goes wrong we don't crash out.

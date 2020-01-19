@@ -15,6 +15,7 @@ import requests as r
 from ISStreamer import Streamer
 from ftplib import FTP
 import threading
+import shutil
 
 class _outputManager():
 
@@ -44,6 +45,7 @@ class _outputManager():
 		self.writePath = os.path.join(os.path.dirname(__file__),'../output/')
 		self.configPath = os.path.join(os.path.dirname(__file__),'../secrets/')
 		self.cachePath = os.path.join(os.path.dirname(__file__),'../eventCache/')
+		self.remotePath = self.getConfig('networkStorage','mountPath')
 
 		# Check whether or not we should be logging
 
@@ -130,15 +132,6 @@ class _outputManager():
 		lettersAndDigits = string.ascii_letters + string.digits
 		return ''.join(random.choice(lettersAndDigits) for i in range(length))
 
-	def getNicelyFormattedDatetimeStringNow(self,underscore=True):
-
-		if underscore:
-			predt, micro= dt.datetime.now().strftime("%Y-%m-%d_%H:%M:%S.%f").split('.') # Which we need to strip to milliseconds (because %f is microseconds)
-		else:
-			predt, micro= dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f").split('.')
-
-		return "%s.%03d" % (predt, int(micro) / 1000)
-
 	def prepLocalFile(self, filename):
 
 		with open(filename, "w") as f:
@@ -148,16 +141,16 @@ class _outputManager():
 
 	def pushEvent(self, payload):
 
-		# To do - think about modifying the file layout to more closely mirror existing BCC reports, so the event type field now dictates position in the row rather than being an entry of itself.
-
-		#TODO - try this and report an error if it doesn't work.
+		# TODO - think about modifying the file layout to more closely mirror existing BCC reports, so the event type field now dictates position in the row rather than being an entry of itself.
 
 		# Write the event to the local log file in /output/ if logging is enabled from the config file
 
 		if self.logging:
-			with open(self.outputFilename, "a") as f:
-				f.write(', '.join([payload['BCC'], payload['empNum'], payload['opNum'], payload['eventType'], payload['time'].strftime("%d/%m/%Y_%H:%M:%S"), payload['interactionTime'], (payload['scrap'] + '\n')])) # comma separated values and builtin newline
-
+			try:			
+				with open(self.outputFilename, "a") as f:
+					f.write(', '.join([payload['BCC'], payload['empNum'], payload['opNum'], payload['eventType'], payload['time'].strftime("%d/%m/%Y_%H:%M:%S"), payload['interactionTime'], (payload['scrap'] + '\n')])) # comma separated values and builtin newline
+			except:
+				self.terminalOutput("LOGGING FAILURE - possible filesize issue", style='ALERT')
 		# Now append the payload to the payload list using a lock, where the upload daemon will find it later.
 
 		with self.payloadListLock:
@@ -188,13 +181,11 @@ class _outputManager():
 			self.InitialStateStream.log_object(payload, key_prefix="")
 			self.InitialStateStream.flush()
 		except:
-			return 0 # Do something slightly more intelligent here
+			return 0 # TODO Do something slightly more intelligent here
 			
 		return 1
 
 	def writeToBCC(self, filename):
-
-		# Only uploads a fake file right now
 
 		try:
 			ftp=FTP(self.ftpserver)
@@ -208,11 +199,25 @@ class _outputManager():
 			self.terminalOutput('FTP failure of some kind',style='ALERT')
 			return 0
 
-	def cacheEvent(self, payload):
+	def WriteToBCCviaShareFolder(self, filename):
 
-		self.station.output.terminalOutput("Caching event locally",style='INFO')
+		# Copies a real results file to the remote directory specified in remotePath
 
-		return 1
+		# Test whether the mount point is a real one here
+
+		if not os.path.isdir(self.remotePath+'leo/uploads/'): # TODO modify this to be included in configuration
+			self.terminalOutput('Remote folder not mounted, aborting upload attempt')
+
+			# TODO In the future we can attempt to dynamically mount it here.
+			return 0
+
+		try:
+			shutil.copyfile(self.cachePath+filename, self.remotePath+'leo/uploads/'+filename)
+			self.terminalOutput('Remote to BCC - success',style='SUCCESS')
+			return 1
+		except:
+			self.terminalOutput('Remote to BCC - failure, possibly mounting issue',style='ALERT')
+			return 0
 
 	# Upload daemon stuff
 
@@ -223,7 +228,10 @@ class _outputManager():
 
 	def getTempFileNameByPayload(self, payload):
 
-		return payload['BCC']+'_'+'FAKEDATE'+'_'+'FAKETIME'+'_'+self.createRandomString(6)+'.csv'
+		# Creates a filename in the appropriate format for BC server ingestion given the contents of the payload
+
+		uploadTime=dt.datetime.now()
+		return payload['BCC'].upper()+'_'+uploadTime.strftime("%d%m%Y")+'_'+uploadTime.strftime("%H%M%S%f")[:-3]+'.csv'
 
 	def writeEventFileToCache(self, payload):
 
@@ -237,8 +245,7 @@ class _outputManager():
 				with open(tempfilename, "w") as f:
 
 					f.write(self.CSVHeader)
-					f.write(', '.join([payload['BCC'], payload['empNum'], payload['opNum'], payload['eventType'], self.getNicelyFormattedDatetimeStringNow(payload['time']), payload['interactionTime'], (payload['scrap'] + '\n')]))
-
+					f.write(', '.join([payload['BCC'].upper(), payload['empNum'], payload['opNum'], payload['eventType'], payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], payload['interactionTime'], (payload['scrap'] + '\n')]))
 				fileWriteOK=1
 			except:
 				self.terminalOutput("File write failed once", style='ALERT')
@@ -281,13 +288,13 @@ class _outputManager():
 
 			if len(cachedEvents):
 
-				self.terminalOutput('Attempting to FTP put an event file, cache contains {} .csv files'.format(len(cachedEvents)),style='INFO')
+				self.terminalOutput('Attempting write an event file to remote folder, cache contains {} .csv files'.format(len(cachedEvents)),style='INFO')
 
 				uploadTargetFilename = cachedEvents[0]
 
 				# Attempt to ftp put this file in the remote directory. If it works, then delete it from the event cache.
 
-				if self.writeToBCC(uploadTargetFilename):
+				if self.WriteToBCCviaShareFolder(uploadTargetFilename):
 					try:
 						os.remove(os.path.join(self.cachePath,uploadTargetFilename))
 					except OSError:

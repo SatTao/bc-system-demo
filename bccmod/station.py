@@ -16,7 +16,7 @@ import configparser
 
 import re
 
-# Traffic lights - PiStop - only works on rpi
+# Traffic lights - PiStop - only works on rpi - it throws recoverable exceptions on windows
 
 from gpiozero import TrafficLights
 
@@ -33,7 +33,6 @@ class _station:
 
 	def __init__(self):
 
-		# self.storedEvents = []
 		self.status = "GREEN" # This will be used for stack lights. 
 		self.stackLight = "YELLOW" # When initialising
 		try:
@@ -52,7 +51,7 @@ class _station:
 
 		self.name = self.output.getConfig('DEFAULT','name')
 		self.location = self.output.getConfig('DEFAULT','location')
-		self.version='Bluecrate Bastard' # Taken from https://www.michaelfogleman.com/phrases/
+		self.version='Chaotic Cabbage' # Taken from https://www.michaelfogleman.com/phrases/
 
 		self.recognised={ # regexes which differentiate the recognised codes exactly
 		'bcc' : re.compile(r'^bc\d+$'), # https://pythex.org/?regex=%5Ebc%5Cd%2B%24&test_string=bc365939269%0Abcs%0A5429bc97870%0ABC111%0Abcb5689&ignorecase=0&multiline=1&dotall=0&verbose=0
@@ -287,7 +286,7 @@ class _station:
 
 		self.output.terminalOutput('Unrecognised command',style='ALERT')
 
-		# VOICE FEEDBACK NEEDED - yes.
+		# TODO VOICE FEEDBACK NEEDED - yes.
 
 		return 0
 
@@ -317,28 +316,6 @@ class _station:
 
 		self.sfx.announceCompleteState() # TODO move this somewhere more sensible
 
-		return 1
-
-	def uploadEvent(self):
-
-		# Accept payload from event for status funcs
-
-		self.output.invokeUploadsDaemon()
-
-		self.updateStatus(self, "GREEN")
-
-		return 1
-
-	def storeForLater(self):
-		self.output.terminalOutput("Storing for later",style='INFO')
-		# TODO help this class remember events that failed to upload because of internet connection.
-		# self.storedEvents.append(info)
-		return 1
-
-	def catchupUploads(self):
-		# TODO help this class re-attempt failed uploads due to internet connectivity.
-
-		# Think about what mechanism this might use to store and systematically check that things worked (or not)
 		return 1
 
 	def freshStart(self):
