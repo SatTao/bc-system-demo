@@ -205,14 +205,14 @@ class _outputManager():
 
 		# Test whether the mount point is a real one here
 
-		if not os.path.isdir(self.remotePath+'leo/uploads/'): # TODO modify this to be included in configuration
+		if not os.path.isdir(self.remotePath+'/uploads/'): # TODO modify this to be included in configuration
 			self.terminalOutput('Remote folder not mounted, aborting upload attempt')
 
 			# TODO In the future we can attempt to dynamically mount it here.
 			return 0
 
 		try:
-			shutil.copyfile(self.cachePath+filename, self.remotePath+'leo/uploads/'+filename)
+			shutil.copyfile(self.cachePath+filename, self.remotePath+'/uploads/'+filename)
 			self.terminalOutput('Remote to BCC - success',style='SUCCESS')
 			return 1
 		except:
