@@ -193,13 +193,13 @@ class _soundController:
 		n = int(payload['opNum'].split("op")[1])
 		for number in self.numberAsCommand(n):
 			cmd.append(number)
-		if payload['eventType'][0:3]=='bgn': #TODO this is too hacky right now - sort it out nicely.
+		if payload['eventType'][:-1]=='start': #TODO this is too hacky right now - sort it out nicely.
 			cmd.append('start')
-		elif payload['eventType'][0:3]=='fin':
+		elif payload['eventType'][:-1]=='finish':
 			cmd.append('stop')
-		if payload['eventType'][3]=='1':
+		if payload['eventType'][-1]=='1':
 			cmd.append('firsttime')
-		elif payload['eventType'][3]=='2':
+		elif payload['eventType'][-1]=='2':
 			cmd.append('secondtime')
 
 		self.announce(cmd)

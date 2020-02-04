@@ -34,7 +34,7 @@ class _event:
 		self.committed = 0
 		self.interactionTime = 0
 		self.commitTime = None
-
+		self.technician='' # Not yet implemented - allows us to associate a technician with a repair on a machine with this BCC.
 		self.scrapValue = '0' # Cheat by using an implicit cast from string to check whether it is valid or not
 
 		# Other variables etc go here.

@@ -66,7 +66,8 @@ class _station:
 		'locationprefix' : re.compile(r'^loc-\w+$'),
 		'langprefix' : re.compile(r'^lang-\w+$'),
 		'logging' : re.compile(r'^log-(?P<flag>\d)$'),
-		'easter': re.compile(r'^egg-(?P<type>\w+)$')
+		'easter': re.compile(r'^egg-(?P<type>\w+)$'),
+		'maintain': re.compile(r'^mech-(?P<name>\w+)$')
 		}
 
 		self.output.terminalOutput("\n\nStation ~{}~ is now active\n\n".format(self.name),style="SUCCESS")
@@ -143,16 +144,16 @@ class _station:
 			match = self.recognised['reducedcombo'].match(textInput)
 			self.event.setBCC('bc'+match.group('bcc')) # The match object automatically scrapes the relevant data to its groups, we need to add the prefixes back in for processing and sending
 			self.event.setOpNum('op'+match.group('op'))
-			# In the reduced combo code version the action is encoded as a,b,c,d which mean bgn1, fin1, bgn2, fin2
+			# In the reduced combo code version the action is encoded as a,b,c,d which mean start1, finish1, start2, finish2
 			actionString=match.group('act')
 			if actionString=='a':
-				actionString='bgn1'
+				actionString='start1'
 			elif actionString=='b':
-				actionString='fin1'
+				actionString='finish1'
 			elif actionString=='c':
-				actionString='bgn2'
+				actionString='start2'
 			elif actionString=='d':
-				actionString='fin2'
+				actionString='finish2'
 			self.event.setEventType(actionString)
 			self.sfx.announceCombo(self.event.getAsPayload())
 
@@ -282,6 +283,12 @@ class _station:
 			match = self.recognised['easter'].match(textInput)
 			easterString=match.group('type')
 			self.sfx.announceEgg(easterString)
+			return 1
+
+		if self.recognised['maintain'].match(textInput): # Not yet implemented, TODO - allows setting a flag that indicates that there was a machine breakdown on this crate. 
+			match = self.recognised['maintain'].match(textInput)
+			technician=match.group('name')
+			# Now do something with this - not yet implemented. TODO
 			return 1
 
 		self.output.terminalOutput('Unrecognised command',style='ALERT')

@@ -38,7 +38,8 @@ class _outputManager():
 
 		# CSV header string format
 
-		self.CSVHeader = ','.join(["BCC", "EMP", "OP", "EVENT", "TIME", "PTIME", ("SCRAP" + '\n')])
+		self.CSVHeader = ','.join(["stationName", "stationLocation", "version", "uploadTime", "eventTime", "eventType", "bcc", "empNum", "opNum", "scrap", ("interactionTime"+"\n")])
+		self.logHeader = ','.join(["BCC", "EMP", "OP", "EVENT", "TIME", "PTIME", ("SCRAP" + '\n')])
 
 		# Get paths to vital folders
 
@@ -135,7 +136,7 @@ class _outputManager():
 	def prepLocalFile(self, filename):
 
 		with open(filename, "w") as f:
-			f.write(self.CSVHeader)
+			f.write(self.logHeader)
 
 		return 1
 
@@ -190,8 +191,9 @@ class _outputManager():
 		try:
 			ftp=FTP(self.ftpserver)
 			ftp.login(user=self.getConfig('ftp','ftpuser'),passwd=self.getConfig('ftp','ftppswd'))
-			ftp.cwd('./upload')
-			ftp.storbinary('STOR BCC.csv', open(self.cachePath+filename,'rb'))
+			ftp.cwd('./WindowsService/Inbound')
+			ftp.storbinary('STOR '+filename, open(self.cachePath+filename,'rb'))
+			# TODO - check what is the response here?
 			ftp.quit()
 			self.terminalOutput('FTP success',style='SUCCESS')
 			return 1
@@ -199,7 +201,7 @@ class _outputManager():
 			self.terminalOutput('FTP failure of some kind',style='ALERT')
 			return 0
 
-	def WriteToBCCviaShareFolder(self, filename):
+	def writeToBCCviaShareFolder(self, filename):
 
 		# Copies a real results file to the remote directory specified in remotePath
 
@@ -231,7 +233,7 @@ class _outputManager():
 		# Creates a filename in the appropriate format for BC server ingestion given the contents of the payload
 
 		uploadTime=dt.datetime.now()
-		return payload['BCC'].upper()+'_'+uploadTime.strftime("%d%m%Y")+'_'+uploadTime.strftime("%H%M%S%f")[:-3]+'.csv'
+		return payload['BCC'].upper()+'_'+uploadTime.strftime("%Y%m%d")+'_'+uploadTime.strftime("%H%M%S%f")[:-3]+'.csv'
 
 	def writeEventFileToCache(self, payload):
 
@@ -245,7 +247,8 @@ class _outputManager():
 				with open(tempfilename, "w") as f:
 
 					f.write(self.CSVHeader)
-					f.write(', '.join([payload['BCC'].upper(), payload['empNum'], payload['opNum'], payload['eventType'], payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], payload['interactionTime'], (payload['scrap'] + '\n')]))
+					f.write(', '.join([self.station.name, self.station.location, self.station.version, payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], payload['eventType'], payload['BCC'].upper(), payload['empNum'], payload['opNum'], payload['scrap'], (payload['interactionTime'] + '\n')]))
+					# f.write(', '.join([payload['BCC'].upper(), payload['empNum'], payload['opNum'], payload['eventType'], payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], payload['interactionTime'], (payload['scrap'] + '\n')]))
 				fileWriteOK=1
 			except:
 				self.terminalOutput("File write failed once", style='ALERT')
@@ -294,7 +297,7 @@ class _outputManager():
 
 				# Attempt to ftp put this file in the remote directory. If it works, then delete it from the event cache.
 
-				if self.WriteToBCCviaShareFolder(uploadTargetFilename):
+				if self.writeToBCC(uploadTargetFilename):
 					try:
 						os.remove(os.path.join(self.cachePath,uploadTargetFilename))
 					except OSError:
