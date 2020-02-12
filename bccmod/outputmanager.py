@@ -191,15 +191,17 @@ class _outputManager():
 		try:
 			ftp=FTP(self.ftpserver)
 			ftp.login(user=self.getConfig('ftp','ftpuser'),passwd=self.getConfig('ftp','ftppswd'))
-			ftp.cwd('./WindowsService/Inbound')
+			ftp.cwd('./WindowsService/BCCTest/ScanStaging') # We place in staging first so the file write occurs without the Windows Service trying to parse it in the middle
 			ftp.storbinary('STOR '+filename, open(self.cachePath+filename,'rb'))
+			ftp.rename(filename, '../Inbound/'+filename) # Then we move the complete file into the inbound folder for processing.
 			# TODO - check what is the response here?
-			ftp.quit()
 			self.terminalOutput('FTP success',style='SUCCESS')
 			return 1
 		except:
 			self.terminalOutput('FTP failure of some kind',style='ALERT')
 			return 0
+		finally:
+			ftp.quit()
 
 	def writeToBCCviaShareFolder(self, filename):
 
@@ -247,7 +249,7 @@ class _outputManager():
 				with open(tempfilename, "w") as f:
 
 					f.write(self.CSVHeader)
-					f.write(', '.join([self.station.name, self.station.location, self.station.version, payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], payload['eventType'], payload['BCC'].upper(), payload['empNum'], payload['opNum'], payload['scrap'], (payload['interactionTime'] + '\n')]))
+					f.write(', '.join([self.station.name, self.station.location, self.station.version, payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], payload['eventType'], payload['BCC'].upper(), payload['empNum'], payload['opNum'][2:], payload['scrap'], (payload['interactionTime'] + '\n')]))
 					# f.write(', '.join([payload['BCC'].upper(), payload['empNum'], payload['opNum'], payload['eventType'], payload['time'].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], payload['interactionTime'], (payload['scrap'] + '\n')]))
 				fileWriteOK=1
 			except:
