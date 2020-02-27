@@ -193,16 +193,15 @@ class _outputManager():
 			ftp.login(user=self.getConfig('ftp','ftpuser'),passwd=self.getConfig('ftp','ftppswd'))
 			ftp.cwd('./WindowsService/BCCTest/ScanStaging') # We place in staging first so the file write occurs without the Windows Service trying to parse it in the middle
 			ftp.storbinary('STOR '+filename, open(self.cachePath+filename,'rb'))
+			time.sleep(0.1) # Allow the ftp host some time to write the file to completion, so that we move a complete file, not a partial.
 			ftp.rename(filename, '../Inbound/'+filename) # Then we move the complete file into the inbound folder for processing.
 			ftp.quit()
-			# TODO - check what is the response here?
 			self.terminalOutput('FTP success',style='SUCCESS')
 			return 1
 		except:
 			self.terminalOutput('FTP failure of some kind',style='ALERT')
 			return 0
 			
-
 	def writeToBCCviaShareFolder(self, filename):
 
 		# Copies a real results file to the remote directory specified in remotePath
