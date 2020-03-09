@@ -151,7 +151,7 @@ class _soundController:
 
 		self.announce('clearall')
 
-	def announceMissingInfo(self, payload): # TODO modify to accept a payload instead of individual numbers
+	def announceMissingInfo(self, payload):
 
 		# Always called when there is something missing
 

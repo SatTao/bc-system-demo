@@ -10,18 +10,22 @@ List of changes and improvements that are TODO for bcc system
 
 - Support supervisors updating a time for a missed bc card using special time codes. e.g. combo code plus employee code plus time-12h time-30m, so it logs the event time backdatedly. Should this support setting a new date too? Like 2019Y 6M 23D 12h 45m? Or we could just set today by default and provide a date-yesterday code. This way we support limited corrections to bc cards, but people cant magically adjust things from any random day and time.
 
-- Move the stacklight management code to a separate class or to the output manager? Avoid complicating things too much within the station class. ?
+- Move the stacklight management code to a separate class or to the output manager? Avoid complicating things too much within the station class. ? DD
 
-- Implement an uptime daemon to send an uptime counter to InitialState - allows us to trigger alerts on dead stations etc ?
+- Implement an uptime daemon to send an uptime counter to InitialState - allows us to trigger alerts on dead stations etc ? DD
 
 - Implement a cron job that checks for application heartbeat on the main thread. If the main thread is blocked then it kills the process and restarts it, or reboots (maybe safer). ?
 
-- Reliability tests - it should robustly deal with loss of network without compromising availability for the user
-
 - Build in support for new voice files, noteably:
 -- announcing scrap quantities - PARTIALLY implemented
--- tidy up the scrap system in general - make it less hacky and more robust. Remove TODOs from that file.
+-- tidy up the scrap system in general - make it less hacky and more robust.
 -- announcing clearing the scrap quantity deliberately or by accident
 -- anything else?
 
-- Test support for multi keyboard input using keyboard module??s
+- Support CTO scanning too using job number recognition, and get pacejet to help implement for fileye to auto recognise.
+
+- Test support for multi keyboard input using keyboard module?? Keep for DD version.
+
+- Add prompt to submit with OK if all fields but this are filled. Guard against people forgetting to submit.
+
+- Check that the interaction timer is cleared when the bcc is cleared, and that if there is a very long wait then the interaction timer is cleared for that too.
