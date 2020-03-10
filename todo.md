@@ -12,7 +12,7 @@ List of changes and improvements that are TODO for bcc system
 
 - Move the stacklight management code to a separate class or to the output manager? Avoid complicating things too much within the station class. ? DD
 
-- Implement an uptime daemon to send an uptime counter to InitialState - allows us to trigger alerts on dead stations etc ? DD
+- Implement an uptime daemon to send an uptime counter to InitialState - allows us to trigger alerts on dead stations etc ? Need to find a simple alerting service...maybe use the builtin cron capabilties?
 
 - Implement a cron job that checks for application heartbeat on the main thread. If the main thread is blocked then it kills the process and restarts it, or reboots (maybe safer). ?
 
@@ -29,3 +29,9 @@ List of changes and improvements that are TODO for bcc system
 - Add prompt to submit with OK if all fields but this are filled. Guard against people forgetting to submit.
 
 - Check that the interaction timer is cleared when the bcc is cleared, and that if there is a very long wait then the interaction timer is cleared for that too.
+
+- Allow dummy to register the times as well? Requires modifying employee recognition code, or making a custom code for dummy.
+
+- .upper() means we can't set case sensitive file paths using ftplocalpath
+
+

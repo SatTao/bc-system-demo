@@ -81,7 +81,8 @@ class _outputManager():
 		# Set up for ftp uploads to local/remote folder (will become bc system endpoint in the future)
 
 		self.ftpserver=self.getConfig('ftp','ftpserver')
-		self.terminalOutput("BC system integration endpoint: {}".format(self.ftpserver))
+		self.ftplocalpath=self.getConfig('ftp','ftplocalpath')
+		self.terminalOutput("BC system integration endpoint: {} - {}".format(self.ftpserver,self.ftplocalpath))
 
 		self.terminalOutput("Output channels initialised")
 
@@ -189,9 +190,9 @@ class _outputManager():
 	def writeToBCC(self, filename):
 
 		try:
-			ftp=FTP(self.ftpserver)
+			ftp=FTP(self.getConfig('ftp','ftpserver'))
 			ftp.login(user=self.getConfig('ftp','ftpuser'),passwd=self.getConfig('ftp','ftppswd'))
-			ftp.cwd('./WindowsService/BCCTest/ScanStaging') # We place in staging first so the file write occurs without the Windows Service trying to parse it in the middle
+			ftp.cwd(self.getConfig('ftp','ftplocalpath')) # We place in staging first so the file write occurs without the Windows Service trying to parse it in the middle
 			ftp.storbinary('STOR '+filename, open(self.cachePath+filename,'rb'))
 			time.sleep(0.1) # Allow the ftp host some time to write the file to completion, so that we move a complete file, not a partial.
 			ftp.rename(filename, '../Inbound/'+filename) # Then we move the complete file into the inbound folder for processing.

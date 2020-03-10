@@ -67,7 +67,9 @@ class _station:
 		'langprefix' : re.compile(r'^lang-\w+$'),
 		'logging' : re.compile(r'^log-(?P<flag>\d)$'),
 		'easter': re.compile(r'^egg-(?P<type>\w+)$'),
-		'maintain': re.compile(r'^mech-(?P<name>\w+)$')
+		'maintain': re.compile(r'^mech-(?P<name>\w+)$'),
+		'ftpserver': re.compile(r'^ftpserver-(?P<ip>.+)$'),
+		'ftplocalpath': re.compile(r'^ftplocalpath-(?P<localpath>.+)$')
 		}
 
 		self.output.terminalOutput("\n\nStation ~{}~ is now active\n\n".format(self.name),style="SUCCESS")
@@ -289,6 +291,20 @@ class _station:
 			match = self.recognised['maintain'].match(textInput)
 			technician=match.group('name')
 			# Now do something with this - not yet implemented. TODO
+			return 1
+
+		if self.recognised['ftpserver'].match(textInput):
+			match = self.recognised['ftpserver'].match(textInput)
+			ip=match.group('ip')
+			self.output.setConfig('ftp','ftpserver',ip)
+			self.sfx.announceOK()
+			return 1
+
+		if self.recognised['ftplocalpath'].match(textInput):
+			match = self.recognised['ftplocalpath'].match(textInput)
+			localpath=match.group('localpath')
+			self.output.setConfig('ftp','ftplocalpath',localpath)
+			self.sfx.announceOK()
 			return 1
 
 		self.output.terminalOutput('Unrecognised command',style='ALERT')
