@@ -121,7 +121,7 @@ class _station:
 
 	def parse(self, textInput):
 
-		textInput = textInput.lower()
+		# textInput = textInput.lower() # (Preserve capital letters since we need to scan in filepaths sometimes.)
 		self.timer.registerActiveInput() # Let's the timer know that we just recieved input
 
 		# Checks for valid data entry by matching to a compiled regex 
