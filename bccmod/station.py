@@ -16,6 +16,10 @@ import configparser
 
 import re
 
+# Execute bash commands from python
+
+import subprocess
+
 # Traffic lights - PiStop - only works on rpi - it throws recoverable exceptions on windows
 
 from gpiozero import TrafficLights
@@ -69,7 +73,8 @@ class _station:
 		'easter': re.compile(r'^egg-(?P<type>\w+)$'),
 		'maintain': re.compile(r'^mech-(?P<name>\w+)$'),
 		'ftpserver': re.compile(r'^ftpserver-(?P<ip>.+)$'),
-		'ftplocalpath': re.compile(r'^ftplocalpath-(?P<localpath>.+)$')
+		'ftplocalpath': re.compile(r'^ftplocalpath-(?P<localpath>.+)$'),
+		'ipstring': re.compile(r'^.*\s*inet\s(?P<ip>\d+\.\d+\.\d+\.\d+)\s*.*')
 		}
 
 		self.output.terminalOutput("\n\nStation ~{}~ is now active\n\n".format(self.name),style="SUCCESS")
@@ -271,6 +276,28 @@ class _station:
 				n=len(list(filter(lambda x: x.endswith('.csv'), os.listdir(self.output.cachePath))))
 				self.output.terminalOutput('Number of files in cache: {}'.format(n), style='ALERT')
 				self.sfx.announce(self.sfx.numberAsCommand(n))
+				return 1
+
+			if (textInput.find('tellip')!=-1): # Then we need to report the IP address
+
+				if self.output.ANSI: # If true this is running on Linux
+					ipstring=subprocess.run(['ifconfig','eth0'],stdout=subprocess.PIPE).stdout.decode('utf-8')
+					ipmatch = self.recognised['ipstring'].match(ipstring)
+					if ipmatch:
+						ip=ipmatch.group('ip')
+						self.output.terminalOutput('IP: {}'.format(ip),style='INFO')
+						ipset=ip.split('.')
+						for sub in ipset:
+							self.sfx.announce(self.sfx.numberAsCommand(sub))
+						return 1
+					else:
+						# There was no match
+						self.output.terminalOutput('No IP match found in ifconfig string',style='ALERT')
+						self.sfx.announceProblem()
+						return 1
+				else:
+					self.output.terminalOutput('No IP function available on Windows yet',style='ALERT')
+
 				return 1
 
 		if self.recognised['logging'].match(textInput):
